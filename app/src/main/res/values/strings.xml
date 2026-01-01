@@ -1,3 +1,128 @@
 <resources>
     <string name="app_name">bikestockProject</string>
+    <!-- Auth -->
+    <string name="login">Login</string>
+    <string name="logout">Logout</string>
+
+    <!-- Home -->
+    <string name="home">Dashboard</string>
+    <string name="kelola_merk">Kelola Merk</string>
+    <string name="kelola_produk">Kelola Produk</string>
+    <string name="catatan_penjualan">Catatan Penjualan</string>
+
+    <!-- Merk -->
+    <string name="list_merk">Daftar Merk</string>
+    <string name="tambah_merk">Tambah Merk</string>
+    <string name="edit_merk">Edit Merk</string>
+    <string name="hapus_merk">Hapus Merk</string>
+    <string name="nama_merk">Nama Merk</string>
+
+    <!-- Produk -->
+    <string name="list_produk">Daftar Produk</string>
+    <string name="tambah_produk">Tambah Produk</string>
+    <string name="detail_produk">Detail Produk</string>
+    <string name="edit_produk">Edit Produk</string>
+    <string name="hapus_produk">Hapus Produk</string>
+    <string name="nama_produk">Nama Produk</string>
+    <string name="harga">Harga</string>
+    <string name="stok">Stok</string>
+    <string name="deskripsi">Deskripsi</string>
+    <string name="update_stok">Update Stok</string>
+    <string name="tambah_stok">Tambah Stok</string>
+
+    <!-- Penjualan -->
+    <string name="list_penjualan">Daftar Penjualan</string>
+    <string name="tambah_penjualan">Tambah Penjualan</string>
+    <string name="detail_penjualan">Detail Penjualan</string>
+    <string name="edit_penjualan">Edit Penjualan</string>
+    <string name="hapus_penjualan">Hapus Penjualan</string>
+    <string name="nama_pembeli">Nama Pembeli</string>
+    <string name="jumlah">Jumlah</string>
+    <string name="total_harga">Total Harga</string>
+    <string name="tanggal_penjualan">Tanggal Penjualan</string>
+
+    <!-- Common -->
+    <string name="simpan">Simpan</string>
+    <string name="simpan_perubahan">Simpan Perubahan</string>
+    <string name="batal">Batal</string>
+    <string name="kembali">Kembali</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="masuk">Masuk</string>
+    <string name="mulai">Mulai</string>
+    <string name="loading">Loading...</string>
+    <string name="error">Error</string>
+    <string name="sukses">Sukses</string>
+    <string name="konfirmasi_hapus">Apakah Anda yakin ingin menghapus?</string>
+    <string name="ya">Ya</string>
+    <string name="tidak">Tidak</string>
+
+    <!-- Splash Screen -->
+    <string name="app_tagline">Aplikasi Inventaris Toko Sepeda</string>
+    <string name="version">Version 1.0</string>
+
+    <!-- Login Screen -->
+    <string name="selamat_datang">Selamat Datang</string>
+    <string name="silakan_login">Silakan login untuk melanjutkan</string>
+    <string name="username_kosong">Username tidak boleh kosong</string>
+    <string name="password_kosong">Password tidak boleh kosong</string>
+    <string name="show_password">Show password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="login_berhasil">Login berhasil!</string>
+
+    <!-- Home Screen -->
+    <string name="dashboard">Dashboard</string>
+    <string name="selamat_datang_user">Selamat Datang,</string>
+    <string name="karyawan">Karyawan</string>
+    <string name="menu_utama">Menu Utama</string>
+    <string name="kelola_merk_desc">Tambah, edit, dan hapus data merk sepeda</string>
+    <string name="kelola_produk_desc">Kelola data produk sepeda dan stok</string>
+    <string name="catatan_penjualan_desc">Lihat dan kelola catatan penjualan</string>
+    <string name="konfirmasi_logout">Konfirmasi Logout</string>
+    <string name="yakin_logout">Apakah Anda yakin ingin keluar?</string>
+    <string name="logout_berhasil">Logout berhasil</string>
+
+    <!-- Merk Screen -->
+    <string name="daftar_merk">Daftar Merk</string>
+    <string name="belum_ada_merk">Belum ada data merk</string>
+    <string name="hapus_merk_confirm">Yakin ingin menghapus merk %1$s?</string>
+    <string name="merk_berhasil_dihapus">Merk berhasil dihapus</string>
+    <string name="merk_berhasil_ditambahkan">Merk berhasil ditambahkan</string>
+    <string name="merk_berhasil_diubah">Merk berhasil diubah</string>
+    <string name="informasi_merk">Informasi Merk</string>
+    <string name="nama_merk_kosong">Nama merk tidak boleh kosong</string>
+    <string name="id_label">ID: %1$d</string>
+
+    <!-- Produk Screen -->
+    <string name="daftar_produk">Daftar Produk</string>
+    <string name="belum_ada_produk">Belum ada data produk</string>
+    <string name="hapus_produk_confirm">Yakin ingin menghapus produk %1$s?</string>
+    <string name="produk_berhasil_dihapus">Produk berhasil dihapus</string>
+    <string name="produk_berhasil_ditambahkan">Produk berhasil ditambahkan</string>
+    <string name="produk_berhasil_diubah">Produk berhasil diubah</string>
+    <string name="stok_berhasil_diubah">Stok berhasil diperbarui</string>
+    <string name="informasi_produk">Informasi Produk</string>
+    <string name="pilih_merk">Pilih Merk</string>
+    <string name="merk_kosong">Merk harus dipilih</string>
+    <string name="nama_produk_kosong">Nama produk tidak boleh kosong</string>
+    <string name="harga_kosong">Harga tidak boleh kosong</string>
+    <string name="stok_kosong">Stok tidak boleh kosong</string>
+    <string name="stok_baru">Stok Baru</string>
+    <string name="harga_format">Rp %1$,d</string>
+    <string name="stok_unit">%1$d Unit</string>
+
+    <!-- Penjualan Screen -->
+    <string name="daftar_penjualan">Daftar Penjualan</string>
+    <string name="belum_ada_penjualan">Belum ada data penjualan</string>
+    <string name="hapus_penjualan_confirm">Yakin ingin menghapus penjualan ini?</string>
+    <string name="penjualan_berhasil_dihapus">Penjualan berhasil dihapus</string>
+    <string name="penjualan_berhasil_ditambahkan">Penjualan berhasil ditambahkan</string>
+    <string name="penjualan_berhasil_diubah">Penjualan berhasil diubah</string>
+    <string name="informasi_penjualan">Informasi Penjualan</string>
+    <string name="pilih_produk">Pilih Produk</string>
+    <string name="produk_kosong">Produk harus dipilih</string>
+    <string name="nama_pembeli_kosong">Nama pembeli tidak boleh kosong</string>
+    <string name="jumlah_kosong">Jumlah tidak boleh kosong</string>
+    <string name="pembeli">Pembeli</string>
+    <string name="produk">Produk</string>
 </resources>
