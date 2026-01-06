@@ -35,13 +35,17 @@ fun PenjualanListScreen(
 ) {
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context) }
-    val token by tokenManager.token.collectAsState(initial = "")
+    val token by tokenManager.token.collectAsState(initial = null)
 
     var penjualanToDelete by remember { mutableStateOf<PenjualanModel?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        token?.let { viewModel.getPenjualanList(it) }
+    LaunchedEffect(token) {
+        token?.let {
+            if (it.isNotEmpty()) {
+                viewModel.getPenjualanList(it)
+            }
+        }
     }
 
     LaunchedEffect(viewModel.deletePenjualanUiState) {

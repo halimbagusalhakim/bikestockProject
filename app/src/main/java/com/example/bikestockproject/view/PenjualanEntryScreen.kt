@@ -34,7 +34,7 @@ fun PenjualanEntryScreen(
 ) {
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context) }
-    val token by tokenManager.token.collectAsState(initial = "")
+    val token by tokenManager.token.collectAsState(initial = null)
 
     var expandedProduk by remember { mutableStateOf(false) }
 
@@ -44,8 +44,12 @@ fun PenjualanEntryScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
-        token?.let { viewModel.getProdukList(it) }
+    LaunchedEffect(token) {
+        token?.let {
+            if (it.isNotEmpty()) {
+                viewModel.getProdukList(it)
+            }
+        }
     }
 
     LaunchedEffect(viewModel.penjualanFormUiState) {

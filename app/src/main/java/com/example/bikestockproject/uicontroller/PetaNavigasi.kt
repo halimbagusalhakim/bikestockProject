@@ -83,7 +83,6 @@ fun HostNavigasi(
         composable(DestinasiHome.route) {
             HomeScreen(
                 navigateToMerk = { navController.navigate(DestinasiMerkList.route) },
-                navigateToProduk = { navController.navigate(DestinasiProdukList.route) },
                 navigateToPenjualan = { navController.navigate(DestinasiPenjualanList.route) },
                 onLogout = {
                     navController.navigate(DestinasiLogin.route) {
@@ -93,14 +92,18 @@ fun HostNavigasi(
             )
         }
 
-        // ==================== MERK ====================
+        // ==================== MERK (Untuk Memilih Merk) ====================
         composable(DestinasiMerkList.route) {
             MerkListScreen(
                 navigateToMerkEntry = { navController.navigate(DestinasiMerkEntry.route) },
                 navigateToMerkEdit = { merkId ->
                     navController.navigate("${DestinasiMerkEdit.route}/$merkId")
                 },
-                navigateBack = { navController.navigateUp() }
+                navigateBack = { navController.navigateUp() },
+                navigateToProdukByMerk = { merkId ->
+                    // Dapatkan nama merk dari state atau pass sebagai argument
+                    navController.navigate("${DestinasiProdukList.route}?merkId=$merkId&merkName=Merk")
+                }
             )
         }
 
@@ -122,8 +125,25 @@ fun HostNavigasi(
         }
 
         // ==================== PRODUK ====================
-        composable(DestinasiProdukList.route) {
+        composable(
+            DestinasiProdukList.routeWithArgs,
+            arguments = listOf(
+                navArgument(DestinasiProdukList.merkIdArg) {
+                    type = NavType.StringType
+                    nullable = true
+                },
+                navArgument(DestinasiProdukList.merkNameArg) {
+                    type = NavType.StringType
+                    nullable = true
+                }
+            )
+        ) { backStackEntry ->
+            val merkIdString = backStackEntry.arguments?.getString(DestinasiProdukList.merkIdArg)
+            val merkName = backStackEntry.arguments?.getString(DestinasiProdukList.merkNameArg)
+
             ProdukListScreen(
+                merkId = merkIdString?.toIntOrNull(),
+                merkName = merkName,
                 navigateToProdukEntry = { navController.navigate(DestinasiProdukEntry.route) },
                 navigateToProdukDetail = { produkId ->
                     navController.navigate("${DestinasiProdukDetail.route}/$produkId")

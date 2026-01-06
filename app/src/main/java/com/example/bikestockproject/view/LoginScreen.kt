@@ -44,16 +44,23 @@ fun LoginScreen(
         when (val state = viewModel.loginUiState) {
             is LoginUiState.Success -> {
                 // Simpan token dan data user
-                scope.launch {
-                    tokenManager.saveAuthData(
-                        token = state.data.data?.token ?: "",
-                        userId = 1, // Default karena backend tidak mengirim user_id
-                        username = viewModel.formState.username,
-                        role = "user"
-                    )
+                val token = state.data.data?.token ?: ""
+                if (token.isNotEmpty()) {
+                    scope.launch {
+                        tokenManager.saveAuthData(
+                            token = token,
+                            userId = 1,
+                            username = viewModel.formState.username,
+                            role = "user"
+                        )
+                    }
+                    Toast.makeText(context, "Login berhasil!", Toast.LENGTH_SHORT).show()
+                    // Delay sedikit untuk memastikan token tersimpan
+                    kotlinx.coroutines.delay(300)
+                    navigateToHome()
+                } else {
+                    Toast.makeText(context, "Token kosong", Toast.LENGTH_SHORT).show()
                 }
-                Toast.makeText(context, "Login berhasil!", Toast.LENGTH_SHORT).show()
-                navigateToHome()
                 viewModel.resetState()
             }
             is LoginUiState.Error -> {

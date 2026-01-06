@@ -28,6 +28,8 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProdukListScreen(
+    merkId: Int? = null, // Tambahan parameter untuk filter merk
+    merkName: String? = null, // Nama merk untuk ditampilkan
     navigateToProdukEntry: () -> Unit,
     navigateToProdukDetail: (Int) -> Unit,
     navigateBack: () -> Unit,
@@ -35,13 +37,17 @@ fun ProdukListScreen(
 ) {
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context) }
-    val token by tokenManager.token.collectAsState(initial = "")
+    val token by tokenManager.token.collectAsState(initial = null)
 
     var produkToDelete by remember { mutableStateOf<ProdukModel?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        token?.let { viewModel.getProdukList(it) }
+    LaunchedEffect(token) {
+        token?.let {
+            if (it.isNotEmpty()) {
+                viewModel.getProdukList(it)
+            }
+        }
     }
 
     LaunchedEffect(viewModel.deleteProdukUiState) {
@@ -89,7 +95,18 @@ fun ProdukListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Daftar Produk") },
+                title = {
+                    Column {
+                        Text("Daftar Produk")
+                        if (merkName != null) {
+                            Text(
+                                text = "Merk: $merkName",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
@@ -115,14 +132,30 @@ fun ProdukListScreen(
                 }
             }
             is ProdukListUiState.Success -> {
-                if (state.produkList.isEmpty()) {
+                // Filter produk berdasarkan merk jika merkId tidak null
+                val filteredList = if (merkId != null) {
+                    state.produkList.filter { it.merkId == merkId }
+                } else {
+                    state.produkList
+                }
+
+                if (filteredList.isEmpty()) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(paddingValues),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Belum ada data produk")
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Belum ada data produk")
+                            if (merkName != null) {
+                                Text(
+                                    text = "untuk merk $merkName",
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
+                            }
+                        }
                     }
                 } else {
                     LazyColumn(
@@ -132,7 +165,7 @@ fun ProdukListScreen(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        items(state.produkList) { produk ->
+                        items(filteredList) { produk ->
                             ProdukCard(
                                 produk = produk,
                                 onClick = { navigateToProdukDetail(produk.produkId!!) },

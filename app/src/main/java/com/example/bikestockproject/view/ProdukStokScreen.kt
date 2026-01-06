@@ -27,7 +27,7 @@ fun ProdukStokScreen(
 ) {
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context) }
-    val token by tokenManager.token.collectAsState(initial = "")
+    val token by tokenManager.token.collectAsState(initial = null)
 
     LaunchedEffect(viewModel.updateStokUiState) {
         when (val state = viewModel.updateStokUiState) {

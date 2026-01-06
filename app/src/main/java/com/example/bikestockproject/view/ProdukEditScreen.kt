@@ -31,12 +31,16 @@ fun ProdukEditScreen(
 ) {
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context) }
-    val token by tokenManager.token.collectAsState(initial = "")
+    val token by tokenManager.token.collectAsState(initial = null)
 
     var expandedMerk by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        token?.let { viewModel.getMerkList(it) }
+    LaunchedEffect(token) {
+        token?.let {
+            if (it.isNotEmpty()) {
+                viewModel.getMerkList(it)
+            }
+        }
     }
 
     LaunchedEffect(viewModel.produkFormUiState) {

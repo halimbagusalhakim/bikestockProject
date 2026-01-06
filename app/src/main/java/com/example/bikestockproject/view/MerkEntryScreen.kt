@@ -25,7 +25,7 @@ fun MerkEntryScreen(
 ) {
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context) }
-    val token by tokenManager.token.collectAsState(initial = "")
+    val token by tokenManager.token.collectAsState(initial = null)
 
     // Observe save state
     LaunchedEffect(viewModel.merkFormUiState) {

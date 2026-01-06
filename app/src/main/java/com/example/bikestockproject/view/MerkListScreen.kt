@@ -23,24 +23,31 @@ import com.example.bikestockproject.viewmodel.MerkListViewModel
 import com.example.bikestockproject.viewmodel.provider.PenyediaViewModel
 
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MerkListScreen(
     navigateToMerkEntry: () -> Unit,
     navigateToMerkEdit: (Int) -> Unit,
     navigateBack: () -> Unit,
+    navigateToProdukByMerk: (Int) -> Unit, // Tambahan parameter
     viewModel: MerkListViewModel = viewModel(factory = PenyediaViewModel.Factory)
 ) {
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context) }
-    val token by tokenManager.token.collectAsState(initial = "")
+    val token by tokenManager.token.collectAsState(initial = null)
 
     var merkToDelete by remember { mutableStateOf<MerkModel?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showManageMerkDialog by remember { mutableStateOf(false) }
 
-    // Load data
-    LaunchedEffect(Unit) {
-        token?.let { viewModel.getMerkList(it) }
+    // Load data when token is available
+    LaunchedEffect(token) {
+        token?.let {
+            if (it.isNotEmpty()) {
+                viewModel.getMerkList(it)
+            }
+        }
     }
 
     // Observe delete state
@@ -87,21 +94,43 @@ fun MerkListScreen(
         )
     }
 
+    // Manage Merk Dialog
+    if (showManageMerkDialog) {
+        AlertDialog(
+            onDismissRequest = { showManageMerkDialog = false },
+            title = { Text("Kelola Merk") },
+            text = { Text("Pilih aksi untuk mengelola data merk") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showManageMerkDialog = false
+                    navigateToMerkEntry()
+                }) {
+                    Text("Tambah Merk Baru")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showManageMerkDialog = false }) {
+                    Text("Tutup")
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Daftar Merk") },
+                title = { Text("Pilih Merk Produk") },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
                     }
+                },
+                actions = {
+                    IconButton(onClick = { showManageMerkDialog = true }) {
+                        Icon(Icons.Default.Settings, contentDescription = "Kelola Merk")
+                    }
                 }
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = navigateToMerkEntry) {
-                Icon(Icons.Default.Add, contentDescription = "Tambah Merk")
-            }
         }
     ) { paddingValues ->
         when (val state = viewModel.merkListUiState) {
@@ -134,8 +163,12 @@ fun MerkListScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(state.merkList) { merk ->
-                            MerkCard(
+                            MerkCardSelectable(
                                 merk = merk,
+                                onClick = { navigateToProdukByMerk(merk.merkId!!) },
+                                onManage = {
+                                    // Show bottom sheet or dialog for edit/delete
+                                },
                                 onEdit = { navigateToMerkEdit(merk.merkId!!) },
                                 onDelete = {
                                     merkToDelete = merk
@@ -161,13 +194,18 @@ fun MerkListScreen(
 }
 
 @Composable
-fun MerkCard(
+fun MerkCardSelectable(
     merk: MerkModel,
+    onClick: () -> Unit,
+    onManage: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier
@@ -176,28 +214,65 @@ fun MerkCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = merk.namaMerk,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Star,
+                    contentDescription = null,
+                    modifier = Modifier.size(40.dp),
+                    tint = MaterialTheme.colorScheme.primary
                 )
-                Text(
-                    text = "ID: ${merk.merkId}",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column {
+                    Text(
+                        text = merk.namaMerk,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = "Lihat produk →",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
 
-            Row {
-                IconButton(onClick = onEdit) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit")
+            Box {
+                IconButton(onClick = { showMenu = true }) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "Menu")
                 }
-                IconButton(onClick = onDelete) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = "Hapus",
-                        tint = MaterialTheme.colorScheme.error
+
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Edit Merk") },
+                        onClick = {
+                            showMenu = false
+                            onEdit()
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Default.Edit, contentDescription = null)
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Hapus Merk") },
+                        onClick = {
+                            showMenu = false
+                            onDelete()
+                        },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
                     )
                 }
             }

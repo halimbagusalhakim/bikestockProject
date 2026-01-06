@@ -31,10 +31,14 @@ fun PenjualanDetailScreen(
 ) {
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context) }
-    val token by tokenManager.token.collectAsState(initial = "")
+    val token by tokenManager.token.collectAsState(initial = null)
 
-    LaunchedEffect(Unit) {
-        token?.let { viewModel.getPenjualanDetail(it) }
+    LaunchedEffect(token) {
+        token?.let {
+            if (it.isNotEmpty()) {
+                viewModel.getPenjualanDetail(it)
+            }
+        }
     }
 
     Scaffold(
