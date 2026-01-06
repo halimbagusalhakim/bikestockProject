@@ -6,6 +6,9 @@ import com.example.bikestockproject.R
 object DestinasiProdukList : DestinasiNavigasi {
     override val route = "list_produk"
     override val titleRes = R.string.list_produk
+    const val merkIdArg = "merkId"
+    const val merkNameArg = "merkName"
+    val routeWithArgs = "$route?merkId={$merkIdArg}&merkName={$merkNameArg}"
 }
 
 object DestinasiProdukEntry : DestinasiNavigasi {
