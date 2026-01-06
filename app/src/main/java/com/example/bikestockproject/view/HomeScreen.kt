@@ -26,7 +26,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     navigateToMerk: () -> Unit,
-    navigateToProduk: () -> Unit,
     navigateToPenjualan: () -> Unit,
     onLogout: () -> Unit,
     viewModel: HomeViewModel = viewModel(factory = PenyediaViewModel.Factory)
@@ -137,19 +136,10 @@ fun HomeScreen(
 
             // Menu Cards
             MenuCard(
-                title = "Kelola Merk",
-                description = "Tambah, edit, dan hapus data merk sepeda",
-                icon = Icons.Default.Star,
-                onClick = navigateToMerk
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            MenuCard(
                 title = "Kelola Produk",
-                description = "Kelola data produk sepeda dan stok",
+                description = "Kelola data produk sepeda dan stok berdasarkan merk",
                 icon = Icons.Default.ShoppingCart,
-                onClick = navigateToProduk
+                onClick = navigateToMerk
             )
 
             Spacer(modifier = Modifier.height(12.dp))
