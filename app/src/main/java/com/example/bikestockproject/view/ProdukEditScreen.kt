@@ -39,6 +39,7 @@ fun ProdukEditScreen(
         token?.let {
             if (it.isNotEmpty()) {
                 viewModel.getMerkList(it)
+                viewModel.loadProdukData(it)
             }
         }
     }
@@ -175,20 +176,79 @@ fun ProdukEditScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    OutlinedTextField(
-                        value = viewModel.formState.stok,
-                        onValueChange = { viewModel.updateStok(it) },
-                        label = { Text("Stok") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        isError = viewModel.formState.isStokError,
-                        supportingText = {
-                            if (viewModel.formState.isStokError) {
-                                Text("Stok tidak boleh kosong")
+                    // ✅ Input Stok dengan tombol + dan -
+                    Column {
+                        Text(
+                            text = "Stok",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (viewModel.formState.isStokError)
+                                MaterialTheme.colorScheme.error
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                        ) {
+                            // Tombol Minus
+                            OutlinedButton(
+                                onClick = {
+                                    val currentStok = viewModel.formState.stok.toIntOrNull() ?: 0
+                                    if (currentStok > 0) {
+                                        viewModel.updateStok((currentStok - 1).toString())
+                                    }
+                                },
+                                modifier = Modifier.size(56.dp),
+                                contentPadding = PaddingValues(0.dp)
+                            ) {
+                                Text("-", fontSize = 24.sp)
                             }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
+
+                            // Display Stok
+                            OutlinedTextField(
+                                value = viewModel.formState.stok,
+                                onValueChange = {
+                                    // Hanya terima angka
+                                    if (it.isEmpty() || it.all { char -> char.isDigit() }) {
+                                        viewModel.updateStok(it)
+                                    }
+                                },
+                                modifier = Modifier.weight(1f),
+                                textStyle = androidx.compose.ui.text.TextStyle(
+                                    fontSize = 18.sp,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                ),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                isError = viewModel.formState.isStokError,
+                                singleLine = true
+                            )
+
+                            // Tombol Plus
+                            OutlinedButton(
+                                onClick = {
+                                    val currentStok = viewModel.formState.stok.toIntOrNull() ?: 0
+                                    viewModel.updateStok((currentStok + 1).toString())
+                                },
+                                modifier = Modifier.size(56.dp),
+                                contentPadding = PaddingValues(0.dp)
+                            ) {
+                                Text("+", fontSize = 24.sp)
+                            }
+                        }
+
+                        if (viewModel.formState.isStokError) {
+                            Text(
+                                text = "Stok tidak boleh kosong",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                            )
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(12.dp))
 

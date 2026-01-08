@@ -168,9 +168,7 @@ fun HostNavigasi(
                 navigateToProdukEdit = { produkId ->
                     navController.navigate("${DestinasiProdukEdit.route}/$produkId")
                 },
-                navigateToUpdateStok = { produkId ->
-                    navController.navigate("${DestinasiProdukStok.route}/$produkId")
-                },
+
                 navigateBack = { navController.navigateUp() }
             )
         }

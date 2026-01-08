@@ -26,7 +26,6 @@ import java.util.*
 @Composable
 fun ProdukDetailScreen(
     navigateToProdukEdit: (Int) -> Unit,
-    navigateToUpdateStok: (Int) -> Unit,
     navigateBack: () -> Unit,
     viewModel: ProdukDetailViewModel = viewModel(factory = PenyediaViewModel.Factory)
 ) {
@@ -106,7 +105,7 @@ fun ProdukDetailScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Action Buttons
+                    // Action Button - hanya Edit Produk
                     Button(
                         onClick = { navigateToProdukEdit(produk.produkId!!) },
                         modifier = Modifier
@@ -116,19 +115,6 @@ fun ProdukDetailScreen(
                         Icon(Icons.Default.Edit, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Edit Produk")
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    OutlinedButton(
-                        onClick = { navigateToUpdateStok(produk.produkId!!) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Update Stok")
                     }
                 }
             }

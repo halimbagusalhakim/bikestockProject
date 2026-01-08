@@ -86,6 +86,7 @@ interface ApiService {
         @Query("id") produkId: Int
     ): Response<BaseResponse>
 
+
     // ==================== PENJUALAN ====================
     @GET("penjualan/read.php")
     suspend fun getAllPenjualan(@Header("Authorization") token: String): Response<PenjualanListResponse>

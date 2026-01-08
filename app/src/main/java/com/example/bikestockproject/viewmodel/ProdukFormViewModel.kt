@@ -64,6 +64,33 @@ class ProdukFormViewModel(
         }
     }
 
+
+    fun loadProdukData(token: String) {
+        if (produkId == null) return
+
+        viewModelScope.launch {
+            produkFormUiState = ProdukFormUiState.Loading
+
+            repositoryProduk.getDetailProduk(token, produkId)
+                .onSuccess { produk ->
+                    formState = formState.copy(
+                        produkId = produk.produkId,
+                        merkId = produk.merkId,
+                        namaProduk = produk.namaProduk,
+                        deskripsi = produk.deskripsi ?: "",
+                        harga = produk.harga.toString(),
+                        stok = produk.stok.toString()
+                    )
+                    produkFormUiState = ProdukFormUiState.Idle
+                }
+                .onFailure { exception ->
+                    produkFormUiState = ProdukFormUiState.Error(
+                        exception.message ?: "Gagal memuat data produk"
+                    )
+                }
+        }
+    }
+
     fun getMerkList(token: String) {
         viewModelScope.launch {
             merkDropdownUiState = MerkDropdownUiState.Loading
