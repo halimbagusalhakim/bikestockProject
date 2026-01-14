@@ -38,8 +38,6 @@ import com.example.bikestockproject.view.ProdukListScreen
 import com.example.bikestockproject.view.ProdukStokScreen
 import com.example.bikestockproject.view.SplashScreen
 
-
-
 @Composable
 fun BikeStockApp(
     navController: NavHostController = rememberNavController(),
@@ -93,7 +91,7 @@ fun HostNavigasi(
             )
         }
 
-        // ==================== MERK (Untuk Memilih Merk) ====================
+        // ==================== MERK ====================
         composable(DestinasiMerkList.route) {
             MerkListScreen(
                 navigateToMerkEntry = { navController.navigate(DestinasiMerkEntry.route) },
@@ -108,34 +106,22 @@ fun HostNavigasi(
         }
 
         composable(DestinasiMerkEntry.route) {
-            MerkEntryScreen(
-                navigateBack = { navController.navigateUp() }
-            )
+            MerkEntryScreen(navigateBack = { navController.navigateUp() })
         }
 
         composable(
             DestinasiMerkEdit.routeWithArgs,
-            arguments = listOf(navArgument(DestinasiMerkEdit.merkIdArg) {
-                type = NavType.IntType
-            })
+            arguments = listOf(navArgument(DestinasiMerkEdit.merkIdArg) { type = NavType.IntType })
         ) {
-            MerkEditScreen(
-                navigateBack = { navController.navigateUp() }
-            )
+            MerkEditScreen(navigateBack = { navController.navigateUp() })
         }
 
         // ==================== PRODUK ====================
         composable(
             DestinasiProdukList.routeWithArgs,
             arguments = listOf(
-                navArgument(DestinasiProdukList.merkIdArg) {
-                    type = NavType.StringType
-                    nullable = true
-                },
-                navArgument(DestinasiProdukList.merkNameArg) {
-                    type = NavType.StringType
-                    nullable = true
-                }
+                navArgument(DestinasiProdukList.merkIdArg) { type = NavType.StringType; nullable = true },
+                navArgument(DestinasiProdukList.merkNameArg) { type = NavType.StringType; nullable = true }
             )
         ) { backStackEntry ->
             val merkIdString = backStackEntry.arguments?.getString(DestinasiProdukList.merkIdArg)
@@ -144,7 +130,9 @@ fun HostNavigasi(
             ProdukListScreen(
                 merkId = merkIdString?.toIntOrNull(),
                 merkName = merkName,
-                navigateToProdukEntry = { navController.navigate(DestinasiProdukEntry.route) },
+                navigateToProdukEntry = { id, nama ->
+                    navController.navigate("${DestinasiProdukEntry.route}/$id/$nama")
+                },
                 navigateToProdukDetail = { produkId ->
                     navController.navigate("${DestinasiProdukDetail.route}/$produkId")
                 },
@@ -152,47 +140,37 @@ fun HostNavigasi(
             )
         }
 
-        composable(DestinasiProdukEntry.route) {
+        composable(
+            route = DestinasiProdukEntry.routeWithArgs,
+            arguments = listOf(
+                navArgument(DestinasiProdukEntry.merkIdArg) { type = NavType.IntType },
+                navArgument(DestinasiProdukEntry.merkNameArg) { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val mNama = backStackEntry.arguments?.getString(DestinasiProdukEntry.merkNameArg) ?: ""
             ProdukEntryScreen(
+                namaMerk = mNama,
                 navigateBack = { navController.navigateUp() }
             )
         }
 
         composable(
             DestinasiProdukDetail.routeWithArgs,
-            arguments = listOf(navArgument(DestinasiProdukDetail.produkIdArg) {
-                type = NavType.IntType
-            })
+            arguments = listOf(navArgument(DestinasiProdukDetail.produkIdArg) { type = NavType.IntType })
         ) {
             ProdukDetailScreen(
                 navigateToProdukEdit = { produkId ->
                     navController.navigate("${DestinasiProdukEdit.route}/$produkId")
                 },
-
                 navigateBack = { navController.navigateUp() }
             )
         }
 
         composable(
             DestinasiProdukEdit.routeWithArgs,
-            arguments = listOf(navArgument(DestinasiProdukEdit.produkIdArg) {
-                type = NavType.IntType
-            })
+            arguments = listOf(navArgument(DestinasiProdukEdit.produkIdArg) { type = NavType.IntType })
         ) {
-            ProdukEditScreen(
-                navigateBack = { navController.navigateUp() }
-            )
-        }
-
-        composable(
-            DestinasiProdukStok.routeWithArgs,
-            arguments = listOf(navArgument(DestinasiProdukStok.produkIdArg) {
-                type = NavType.IntType
-            })
-        ) {
-            ProdukStokScreen(
-                navigateBack = { navController.navigateUp() }
-            )
+            ProdukEditScreen(navigateBack = { navController.navigateUp() })
         }
 
         // ==================== PENJUALAN ====================
@@ -207,17 +185,14 @@ fun HostNavigasi(
         }
 
         composable(DestinasiPenjualanEntry.route) {
-            PenjualanEntryScreen(
-                navigateBack = { navController.navigateUp() }
-            )
+            PenjualanEntryScreen(navigateBack = { navController.navigateUp() })
         }
 
         composable(
             DestinasiPenjualanDetail.routeWithArgs,
-            arguments = listOf(navArgument(DestinasiPenjualanDetail.penjualanIdArg) {
-                type = NavType.IntType
-            })
+            arguments = listOf(navArgument(DestinasiPenjualanDetail.penjualanIdArg) { type = NavType.IntType })
         ) {
+            // PARAMETER navigateToPenjualanEdit DIHAPUS agar sesuai dengan Screen Anda
             PenjualanDetailScreen(
                 navigateToPenjualanEdit = { penjualanId ->
                     navController.navigate("${DestinasiPenjualanEdit.route}/$penjualanId")
@@ -228,14 +203,9 @@ fun HostNavigasi(
 
         composable(
             DestinasiPenjualanEdit.routeWithArgs,
-            arguments = listOf(navArgument(DestinasiPenjualanEdit.penjualanIdArg) {
-                type = NavType.IntType
-            })
+            arguments = listOf(navArgument(DestinasiPenjualanEdit.penjualanIdArg) { type = NavType.IntType })
         ) {
-            PenjualanEditScreen(
-                navigateBack = { navController.navigateUp() }
-            )
+            PenjualanEditScreen(navigateBack = { navController.navigateUp() })
         }
     }
 }
-
