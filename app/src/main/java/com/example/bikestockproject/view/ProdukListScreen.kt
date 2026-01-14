@@ -1,17 +1,23 @@
 package com.example.bikestockproject.view
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -30,7 +36,7 @@ import java.util.*
 fun ProdukListScreen(
     merkId: Int? = null,
     merkName: String? = null,
-    navigateToProdukEntry: () -> Unit,
+    navigateToProdukEntry: (Int, String) -> Unit,
     navigateToProdukDetail: (Int) -> Unit,
     navigateBack: () -> Unit,
     viewModel: ProdukListViewModel = viewModel(factory = PenyediaViewModel.Factory)
@@ -42,14 +48,12 @@ fun ProdukListScreen(
     var produkToDelete by remember { mutableStateOf<ProdukModel?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
+    // Fetch data logic
     LaunchedEffect(token) {
-        token?.let {
-            if (it.isNotEmpty()) {
-                viewModel.getProdukList(it)
-            }
-        }
+        token?.let { if (it.isNotEmpty()) viewModel.getProdukList(it) }
     }
 
+    // Handle Delete State
     LaunchedEffect(viewModel.deleteProdukUiState) {
         when (val state = viewModel.deleteProdukUiState) {
             is DeleteProdukUiState.Success -> {
@@ -68,155 +72,89 @@ fun ProdukListScreen(
     if (showDeleteDialog && produkToDelete != null) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            icon = { Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-            title = { Text("Hapus Produk") },
-            text = { Text("Yakin ingin menghapus produk ${produkToDelete?.namaProduk}?") },
+            icon = { Icon(Icons.Default.DeleteForever, null, tint = MaterialTheme.colorScheme.error) },
+            title = { Text("Konfirmasi Hapus") },
+            text = { Text("Apakah Anda yakin ingin menghapus '${produkToDelete?.namaProduk}'? Tindakan ini tidak dapat dibatalkan.") },
             confirmButton = {
                 Button(
                     onClick = {
                         showDeleteDialog = false
-                        token?.let {
-                            produkToDelete?.produkId?.let { id ->
-                                viewModel.deleteProduk(it, id)
-                            }
-                        }
+                        token?.let { tkn -> produkToDelete?.produkId?.let { id -> viewModel.deleteProduk(tkn, id) } }
                     },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("Hapus")
-                }
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) { Text("Hapus") }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showDeleteDialog = false }) {
-                    Text("Batal")
-                }
+                TextButton(onClick = { showDeleteDialog = false }) { Text("Batal") }
             }
         )
     }
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
-                    Column {
-                        Text("Daftar Produk", fontWeight = FontWeight.Bold)
-                        if (merkName != null) {
-                            Text(
-                                text = "Merk: $merkName",
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
-                        } else {
-                            Text(
-                                text = "Semua produk",
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
-                        }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("Daftar Produk", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
+                        Text(
+                            text = if (merkName != null) merkName else "Semua Merk",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
+                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Kembali", modifier = Modifier.size(20.dp))
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = navigateToProdukEntry,
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Tambah Produk")
+            if (merkId != null && merkName != null) {
+                ExtendedFloatingActionButton(
+                    onClick = { navigateToProdukEntry(merkId, merkName) },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = Color.White,
+                    icon = { Icon(Icons.Default.Add, null) },
+                    text = { Text("Tambah") },
+                    shape = RoundedCornerShape(16.dp)
+                )
             }
         }
     ) { paddingValues ->
-        when (val state = viewModel.produkListUiState) {
-            is ProdukListUiState.Loading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues).background(Color(0xFFF8F9FA))) {
+            when (val state = viewModel.produkListUiState) {
+                is ProdukListUiState.Loading -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
-            }
-            is ProdukListUiState.Success -> {
-                val filteredList = if (merkId != null) {
-                    state.produkList.filter { it.merkId == merkId }
-                } else {
-                    state.produkList
-                }
+                is ProdukListUiState.Success -> {
+                    val filteredList = if (merkId != null) state.produkList.filter { it.merkId == merkId } else state.produkList
 
-                if (filteredList.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                Icons.Default.ShoppingCart,
-                                contentDescription = null,
-                                modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                "Belum ada produk",
-                                fontWeight = FontWeight.Medium
-                            )
-                            if (merkName != null) {
-                                Text(
-                                    text = "untuk merk $merkName",
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    if (filteredList.isEmpty()) {
+                        EmptyStateProduk(merkName)
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(filteredList) { produk ->
+                                ProdukCard(
+                                    produk = produk,
+                                    onClick = { navigateToProdukDetail(produk.produkId!!) },
+                                    onDelete = {
+                                        produkToDelete = produk
+                                        showDeleteDialog = true
+                                    }
                                 )
                             }
                         }
                     }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(filteredList) { produk ->
-                            ProdukCard(
-                                produk = produk,
-                                onClick = { navigateToProdukDetail(produk.produkId!!) },
-                                onDelete = {
-                                    produkToDelete = produk
-                                    showDeleteDialog = true
-                                }
-                            )
-                        }
-                    }
                 }
-            }
-            is ProdukListUiState.Error -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            Icons.Default.Warning,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(state.message, color = MaterialTheme.colorScheme.error)
-                    }
+                is ProdukListUiState.Error -> {
+                    Text(state.message, color = Color.Red, modifier = Modifier.align(Alignment.Center))
                 }
             }
         }
@@ -229,96 +167,111 @@ fun ProdukCard(
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
-    var showMenu by remember { mutableStateOf(false) }
     val formatRupiah = remember {
         NumberFormat.getCurrencyInstance(Locale("id", "ID")).apply {
             maximumFractionDigits = 0
         }
     }
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
+    // Status Warna Stok
+    val stokColor = if (produk.stok > 10) Color(0xFF10B981) else Color(0xFFEF4444)
+    val stokBg = stokColor.copy(alpha = 0.1f)
+
+    Surface(
         onClick = onClick,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        color = Color.White,
+        shadowElevation = 2.dp,
+        border = BorderStroke(1.dp, Color(0xFFF1F3F5))
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Placeholder Gambar / Icon Sepeda
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                modifier = Modifier.size(64.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.DirectionsBike, null, tint = MaterialTheme.colorScheme.primary)
+                }
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = produk.namaProduk,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = produk.namaMerk ?: "-",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    text = formatRupiah.format(produk.harga),
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 )
+
                 Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+
+                // Badge Stok
+                Surface(
+                    shape = CircleShape,
+                    color = stokBg,
+                    border = BorderStroke(1.dp, stokColor.copy(alpha = 0.2f))
                 ) {
-                    Surface(
-                        shape = MaterialTheme.shapes.small,
-                        color = MaterialTheme.colorScheme.primaryContainer
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
+                        Box(modifier = Modifier.size(6.dp).background(stokColor, CircleShape))
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = formatRupiah.format(produk.harga),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                    Surface(
-                        shape = MaterialTheme.shapes.small,
-                        color = if (produk.stok > 10) MaterialTheme.colorScheme.secondaryContainer
-                        else MaterialTheme.colorScheme.errorContainer
-                    ) {
-                        Text(
-                            text = "${produk.stok} Unit",
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = if (produk.stok > 10) MaterialTheme.colorScheme.onSecondaryContainer
-                            else MaterialTheme.colorScheme.onErrorContainer
+                            text = "${produk.stok} Unit Tersedia",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = stokColor
                         )
                     }
                 }
             }
 
-            Box {
-                IconButton(onClick = { showMenu = true }) {
-                    Icon(Icons.Default.MoreVert, contentDescription = "Menu")
-                }
-
-                DropdownMenu(
-                    expanded = showMenu,
-                    onDismissRequest = { showMenu = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Hapus Produk", color = MaterialTheme.colorScheme.error) },
-                        onClick = {
-                            showMenu = false
-                            onDelete()
-                        },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Delete,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    )
-                }
+            IconButton(
+                onClick = onDelete,
+                modifier = Modifier.background(Color(0xFFFFF1F2), CircleShape).size(36.dp)
+            ) {
+                Icon(Icons.Default.DeleteOutline, null, tint = Color(0xFFEF4444), modifier = Modifier.size(18.dp))
             }
         }
+    }
+}
+
+@Composable
+fun EmptyStateProduk(merkName: String?) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Surface(
+            shape = CircleShape,
+            color = Color(0xFFF1F3F5),
+            modifier = Modifier.size(100.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(Icons.Default.Inventory2, null, modifier = Modifier.size(48.dp), tint = Color.LightGray)
+            }
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+        Text("Produk Kosong", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(
+            "Belum ada produk untuk ${merkName ?: "kategori ini"}",
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.Gray
+        )
     }
 }

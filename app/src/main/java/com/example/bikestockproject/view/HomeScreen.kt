@@ -1,8 +1,12 @@
 package com.example.bikestockproject.view
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -10,8 +14,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -33,169 +39,199 @@ fun HomeScreen(
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context) }
     val scope = rememberCoroutineScope()
-
     var showLogoutDialog by remember { mutableStateOf(false) }
     val username by tokenManager.username.collectAsState(initial = "")
     val token by tokenManager.token.collectAsState(initial = "")
 
-    // Observe Logout State
+    // Logout Logic
     LaunchedEffect(viewModel.logoutUiState) {
-        when (val state = viewModel.logoutUiState) {
-            is LogoutUiState.Success -> {
-                scope.launch {
-                    tokenManager.clearAuthData()
-                }
-                Toast.makeText(context, "Logout berhasil", Toast.LENGTH_SHORT).show()
-                onLogout()
-                viewModel.resetState()
-            }
-            is LogoutUiState.Error -> {
-                Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
-                viewModel.resetState()
-            }
-            else -> {}
+        if (viewModel.logoutUiState is LogoutUiState.Success) {
+            scope.launch { tokenManager.clearAuthData() }
+            onLogout()
+            viewModel.resetState()
         }
     }
 
-    // Logout Confirmation Dialog
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
             title = { Text("Konfirmasi Logout") },
-            text = { Text("Apakah Anda yakin ingin keluar?") },
+            text = { Text("Apakah Anda yakin ingin keluar dari aplikasi BikeStock?") },
             confirmButton = {
-                TextButton(
+                Button(
                     onClick = {
                         showLogoutDialog = false
                         viewModel.logout(token ?: "")
-                    }
-                ) {
-                    Text("Ya")
-                }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) { Text("Keluar") }
             },
             dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Tidak")
-                }
+                TextButton(onClick = { showLogoutDialog = false }) { Text("Batal") }
             }
         )
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Dashboard") },
-                actions = {
-                    IconButton(onClick = { showLogoutDialog = true }) {
-                        Icon(Icons.Default.ExitToApp, contentDescription = "Logout")
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
+    Scaffold { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .background(Color(0xFFF8F9FA)) // Background sedikit abu-abu sangat muda agar kartu putih terlihat pop-out
         ) {
-            // Welcome Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+            // --- HEADER MODERN ---
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
+                    )
+                    .padding(horizontal = 24.dp, vertical = 40.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(20.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Selamat Datang,",
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Text(
-                        text = username ?: "Karyawan",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                    Column {
+                        Text(
+                            text = "Halo, Selamat Pagi!",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                        Text(
+                            text = username ?: "User",
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color.White
+                            )
+                        )
+                    }
+
+                    // Tombol Logout yang lebih stylish
+                    Surface(
+                        onClick = { showLogoutDialog = true },
+                        color = Color.White.copy(alpha = 0.2f),
+                        shape = CircleShape,
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Logout,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            Text(
-                text = "Menu Utama",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
+            // --- BAGIAN MENU UTAMA (GRID 2 KOLOM) ---
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+            ) {
+                Text(
+                    text = "Layanan Utama",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1A1C1E)
+                    )
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-            // Menu Cards
-            MenuCard(
-                title = "Kelola Produk",
-                description = "Kelola data produk sepeda dan stok berdasarkan merk",
-                icon = Icons.Default.ShoppingCart,
-                onClick = navigateToMerk
-            )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Menu 1: Manajemen Produk
+                    GridMenuCard(
+                        modifier = Modifier.weight(1f),
+                        title = "Manajemen Produk",
+                        description = "Kelola Stok",
+                        icon = Icons.Default.DirectionsBike,
+                        containerColor = Color(0xFF6366F1), // Indigo modern
+                        onClick = navigateToMerk
+                    )
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            MenuCard(
-                title = "Catatan Penjualan",
-                description = "Lihat dan kelola catatan penjualan",
-                icon = Icons.Default.List,
-                onClick = navigateToPenjualan
-            )
+                    // Menu 2: Laporan Penjualan
+                    GridMenuCard(
+                        modifier = Modifier.weight(1f),
+                        title = "Laporan Penjualan",
+                        description = "Cek Omzet",
+                        icon = Icons.Default.Assessment,
+                        containerColor = Color(0xFF10B981), // Emerald modern
+                        onClick = navigateToPenjualan
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-fun MenuCard(
+fun GridMenuCard(
+    modifier: Modifier,
     title: String,
     description: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
+    containerColor: Color,
     onClick: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onClick
+    Surface(
+        onClick = onClick,
+        modifier = modifier.aspectRatio(0.85f), // Membuat kartu agak tinggi
+        shape = RoundedCornerShape(28.dp),
+        color = Color.White,
+        shadowElevation = 2.dp,
+        border = BorderStroke(1.dp, Color(0xFFF1F3F5))
     ) {
-        Row(
-            modifier = Modifier
-                .padding(20.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = description,
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
+            // Ikon dengan lingkaran background transparan
+            Surface(
+                shape = CircleShape,
+                color = containerColor.copy(alpha = 0.12f),
+                modifier = Modifier.size(64.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = containerColor,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
             }
 
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowRight,
-                contentDescription = null
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 20.sp
+                ),
+                textAlign = TextAlign.Center,
+                color = Color(0xFF1A1C1E)
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray,
+                textAlign = TextAlign.Center
             )
         }
     }

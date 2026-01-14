@@ -125,4 +125,41 @@
     <string name="jumlah_kosong">Jumlah tidak boleh kosong</string>
     <string name="pembeli">Pembeli</string>
     <string name="produk">Produk</string>
+    <string name="version_label">Versi %1$s</string>
+
+    <string name="splash_title">BikeStock</string>
+    <string name="splash_tagline">Kelola inventaris toko sepeda Anda dengan lebih cerdas dan efisien.</string>
+    <string name="btn_get_started">Mulai Sekarang</string>
+
+    // --- perbatasan ---
+    // --- splash ---
+
+    <string name="home_welcome">Halo, Selamat Pagi!</string>
+    <string name="home_menu_title">Layanan Utama</string>
+    <string name="menu_product_desc">Cek ketersediaan dan tambah unit</string>
+    <string name="menu_sales_desc">Pantau omzet dan histori transaksi</string>
+    <string name="dialog_logout_title">Keluar Aplikasi</string>
+    <string name="dialog_logout_msg">Apakah Anda yakin ingin mengakhiri sesi ini?</string>
+    <string name="btn_yes">Ya</string>
+    <string name="btn_no">Batal</string>
+
+    // --- login ---
+
+    <string name="login_header">Masuk ke Akun</string>
+    <string name="login_subheader">Akses inventaris BikeStock Anda</string>
+    <string name="label_username">Username</string>
+    <string name="label_password">Password</string>
+    <string name="error_username_empty">Username tidak boleh kosong</string>
+    <string name="error_password_empty">Password tidak boleh kosong</string>
+    <string name="forgot_password">Lupa Password?</string>
+    <string name="btn_login">Masuk Sekarang</string>
+    <string name="login_success">Selamat datang kembali!</string>
+    //-----homescreen---
+    <string name="desc_manage_stock">Kelola Stok</string>
+    <string name="desc_view_sales">Cek Laporan</string>
+
+    <string name="menu_product_title">Manajemen Produk</string>
+
+    <string name="menu_sales_title">Laporan Penjualan</string>
+
 </resources>

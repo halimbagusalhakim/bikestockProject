@@ -1,12 +1,17 @@
 package com.example.bikestockproject.view
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,85 +33,105 @@ fun MerkEditScreen(
     val tokenManager = remember { TokenManager(context) }
     val token by tokenManager.token.collectAsState(initial = null)
 
-    // Observe save state
+    // Trigger muat data saat token siap
+    LaunchedEffect(token) {
+        token?.let { viewModel.loadDataUntukEdit(it) }
+    }
+
+    // Handle navigasi sukses
     LaunchedEffect(viewModel.merkFormUiState) {
-        when (val state = viewModel.merkFormUiState) {
-            is MerkFormUiState.Success -> {
-                Toast.makeText(context, "Merk berhasil diubah", Toast.LENGTH_SHORT).show()
-                navigateBack()
-            }
-            is MerkFormUiState.Error -> {
-                Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
-                viewModel.resetState()
-            }
-            else -> {}
+        if (viewModel.merkFormUiState is MerkFormUiState.Success) {
+            Toast.makeText(context, "Berhasil memperbarui merk", Toast.LENGTH_SHORT).show()
+            navigateBack()
+            viewModel.resetState()
         }
     }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Edit Merk") },
+            CenterAlignedTopAppBar(
+                title = { Text("Edit Merk", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
+                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = null, modifier = Modifier.size(20.dp))
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
             )
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .background(Color(0xFFF8F9FA)) // Background soft grey agar kartu terlihat menonjol
         ) {
-            Card(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(
-                        text = "Informasi Merk",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedTextField(
-                        value = viewModel.formState.namaMerk,
-                        onValueChange = { viewModel.updateNamaMerk(it) },
-                        label = { Text("Nama Merk") },
-                        isError = viewModel.formState.isNamaMerkError,
-                        supportingText = {
-                            if (viewModel.formState.isNamaMerkError) {
-                                Text("Nama merk tidak boleh kosong")
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(
-                onClick = { token?.let { viewModel.saveMerk(it) } },
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                enabled = viewModel.merkFormUiState !is MerkFormUiState.Loading
+                    .fillMaxSize()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (viewModel.merkFormUiState is MerkFormUiState.Loading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                } else {
-                    Text("Simpan Perubahan")
+                // Card Kontainer Form
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Text(
+                            text = "Informasi Merk",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        OutlinedTextField(
+                            value = viewModel.formState.namaMerk,
+                            onValueChange = { viewModel.updateNamaMerk(it) },
+                            label = { Text("Nama Merk") },
+                            placeholder = { Text("Masukkan nama merk baru") },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true,
+                            isError = viewModel.formState.isNamaMerkError,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = Color.LightGray
+                            )
+                        )
+
+                        if (viewModel.formState.isNamaMerkError) {
+                            Text(
+                                text = "Nama merk tidak boleh kosong",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Tombol Simpan
+                Button(
+                    onClick = { token?.let { viewModel.saveMerk(it) } },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = viewModel.merkFormUiState !is MerkFormUiState.Loading,
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                ) {
+                    if (viewModel.merkFormUiState is MerkFormUiState.Loading) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                    } else {
+                        Text("Simpan Perubahan", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+                    }
                 }
             }
         }

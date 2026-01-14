@@ -10,15 +10,17 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.bikestockproject.local.TokenManager
-import com.example.bikestockproject.viewmodel.MerkDropdownUiState
 import com.example.bikestockproject.viewmodel.ProdukFormUiState
 import com.example.bikestockproject.viewmodel.ProdukFormViewModel
 import com.example.bikestockproject.viewmodel.provider.PenyediaViewModel
@@ -26,6 +28,7 @@ import com.example.bikestockproject.viewmodel.provider.PenyediaViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProdukEntryScreen(
+    namaMerk: String, // Nama merk dikirim dari navigasi
     navigateBack: () -> Unit,
     viewModel: ProdukFormViewModel = viewModel(factory = PenyediaViewModel.Factory)
 ) {
@@ -33,16 +36,7 @@ fun ProdukEntryScreen(
     val tokenManager = remember { TokenManager(context) }
     val token by tokenManager.token.collectAsState(initial = null)
 
-    var expandedMerk by remember { mutableStateOf(false) }
-
-    LaunchedEffect(token) {
-        token?.let {
-            if (it.isNotEmpty()) {
-                viewModel.getMerkList(it)
-            }
-        }
-    }
-
+    // Effect untuk menangani status simpan
     LaunchedEffect(viewModel.produkFormUiState) {
         when (val state = viewModel.produkFormUiState) {
             is ProdukFormUiState.Success -> {
@@ -60,7 +54,7 @@ fun ProdukEntryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Tambah Produk") },
+                title = { Text("Tambah Produk - $namaMerk") },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
@@ -76,12 +70,8 @@ fun ProdukEntryScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
-            Card(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "Informasi Produk",
                         fontSize = 18.sp,
@@ -90,55 +80,14 @@ fun ProdukEntryScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Dropdown Merk
-                    ExposedDropdownMenuBox(
-                        expanded = expandedMerk,
-                        onExpandedChange = { expandedMerk = it }
-                    ) {
-                        OutlinedTextField(
-                            value = when (val state = viewModel.merkDropdownUiState) {
-                                is MerkDropdownUiState.Success -> {
-                                    state.merkList.find { it.merkId == viewModel.formState.merkId }?.namaMerk ?: ""
-                                }
-                                else -> ""
-                            },
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Pilih Merk") },
-                            trailingIcon = {
-                                Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                            },
-                            isError = viewModel.formState.isMerkIdError,
-                            supportingText = {
-                                if (viewModel.formState.isMerkIdError) {
-                                    Text("Merk harus dipilih")
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor()
-                        )
-
-                        ExposedDropdownMenu(
-                            expanded = expandedMerk,
-                            onDismissRequest = { expandedMerk = false }
-                        ) {
-                            when (val state = viewModel.merkDropdownUiState) {
-                                is MerkDropdownUiState.Success -> {
-                                    state.merkList.forEach { merk ->
-                                        DropdownMenuItem(
-                                            text = { Text(merk.namaMerk) },
-                                            onClick = {
-                                                viewModel.updateMerkId(merk.merkId!!)
-                                                expandedMerk = false
-                                            }
-                                        )
-                                    }
-                                }
-                                else -> {}
-                            }
-                        }
-                    }
+                    // Field Merk (Read-Only) karena sudah otomatis dari halaman sebelumnya
+                    OutlinedTextField(
+                        value = namaMerk,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Merk") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -148,11 +97,6 @@ fun ProdukEntryScreen(
                         onValueChange = { viewModel.updateNamaProduk(it) },
                         label = { Text("Nama Produk") },
                         isError = viewModel.formState.isNamaProdukError,
-                        supportingText = {
-                            if (viewModel.formState.isNamaProdukError) {
-                                Text("Nama produk tidak boleh kosong")
-                            }
-                        },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
@@ -166,32 +110,80 @@ fun ProdukEntryScreen(
                         label = { Text("Harga") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         isError = viewModel.formState.isHargaError,
-                        supportingText = {
-                            if (viewModel.formState.isHargaError) {
-                                Text("Harga tidak boleh kosong")
-                            }
-                        },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Stok
-                    OutlinedTextField(
-                        value = viewModel.formState.stok,
-                        onValueChange = { viewModel.updateStok(it) },
-                        label = { Text("Stok") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        isError = viewModel.formState.isStokError,
-                        supportingText = {
-                            if (viewModel.formState.isStokError) {
-                                Text("Stok tidak boleh kosong")
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                    // Input Stok dengan Tombol + dan -
+                    Text(
+                        text = "Stok",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (viewModel.formState.isStokError)
+                            MaterialTheme.colorScheme.error
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Tombol Kurang (-)
+                        OutlinedButton(
+                            onClick = {
+                                val current = viewModel.formState.stok.toIntOrNull() ?: 0
+                                if (current > 0) viewModel.updateStok((current - 1).toString())
+                            },
+                            modifier = Modifier.size(56.dp),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text("-", fontSize = 24.sp)
+                        }
+
+                        // Input Teks Stok (Rata Tengah)
+                        OutlinedTextField(
+                            value = viewModel.formState.stok,
+                            onValueChange = {
+                                if (it.isEmpty() || it.all { char -> char.isDigit() }) {
+                                    viewModel.updateStok(it)
+                                }
+                            },
+                            modifier = Modifier.weight(1f),
+                            textStyle = TextStyle(
+                                fontSize = 18.sp,
+                                textAlign = TextAlign.Center
+                            ),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            isError = viewModel.formState.isStokError,
+                            singleLine = true
+                        )
+
+                        // Tombol Tambah (+)
+                        OutlinedButton(
+                            onClick = {
+                                val current = viewModel.formState.stok.toIntOrNull() ?: 0
+                                viewModel.updateStok((current + 1).toString())
+                            },
+                            modifier = Modifier.size(56.dp),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text("+", fontSize = 24.sp)
+                        }
+                    }
+
+                    if (viewModel.formState.isStokError) {
+                        Text(
+                            text = "Stok tidak boleh kosong",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -210,6 +202,7 @@ fun ProdukEntryScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Tombol Simpan
             Button(
                 onClick = { token?.let { viewModel.saveProduk(it) } },
                 modifier = Modifier
@@ -223,7 +216,7 @@ fun ProdukEntryScreen(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text("Simpan")
+                    Text("Simpan Produk")
                 }
             }
         }

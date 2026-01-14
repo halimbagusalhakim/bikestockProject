@@ -47,6 +47,7 @@ fun PenjualanEditScreen(
     LaunchedEffect(token) {
         token?.let {
             if (it.isNotEmpty()) {
+                viewModel.loadPenjualanData(it)
                 viewModel.getProdukList(it)
             }
         }

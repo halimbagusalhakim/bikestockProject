@@ -14,6 +14,10 @@ object DestinasiProdukList : DestinasiNavigasi {
 object DestinasiProdukEntry : DestinasiNavigasi {
     override val route = "entry_produk"
     override val titleRes = R.string.tambah_produk
+    const val merkIdArg = "merkId"
+    const val merkNameArg = "merkName"
+    // Route dengan pattern untuk menangkap argumen
+    val routeWithArgs = "$route/{$merkIdArg}/{$merkNameArg}"
 }
 
 object DestinasiProdukDetail : DestinasiNavigasi {

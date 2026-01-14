@@ -1,7 +1,10 @@
 package com.example.bikestockproject.view
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -9,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -34,33 +38,25 @@ fun ProdukDetailScreen(
     val token by tokenManager.token.collectAsState(initial = null)
 
     LaunchedEffect(token) {
-        token?.let {
-            if (it.isNotEmpty()) {
-                viewModel.getProdukDetail(it)
-            }
-        }
+        token?.let { if (it.isNotEmpty()) viewModel.getProdukDetail(it) }
     }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Detail Produk") },
+            CenterAlignedTopAppBar(
+                title = { Text("Informasi Detail", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
+                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Kembali", modifier = Modifier.size(20.dp))
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
             )
         }
     ) { paddingValues ->
         when (val state = viewModel.produkDetailUiState) {
             is ProdukDetailUiState.Loading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             }
@@ -72,60 +68,110 @@ fun ProdukDetailScreen(
                     }
                 }
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                        .verticalScroll(rememberScrollState())
-                        .padding(16.dp)
-                ) {
-                    // Informasi Produk Card
-                    Card(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Text(
-                                text = "Informasi Produk",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            DetailRow(label = "ID", value = produk.produkId.toString())
-                            DetailRow(label = "Nama Produk", value = produk.namaProduk)
-                            DetailRow(label = "Merk", value = produk.namaMerk ?: "-")
-                            DetailRow(label = "Harga", value = formatRupiah.format(produk.harga))
-                            DetailRow(label = "Stok", value = "${produk.stok} Unit")
-                            DetailRow(label = "Deskripsi", value = produk.deskripsi ?: "-")
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Action Button - hanya Edit Produk
-                    Button(
-                        onClick = { navigateToProdukEdit(produk.produkId!!) },
+                Box(modifier = Modifier.fillMaxSize().padding(paddingValues).background(Color(0xFFF8F9FA))) {
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(24.dp)
                     ) {
-                        Icon(Icons.Default.Edit, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Edit Produk")
+                        // Header Visual (Placeholder Gambar / Ikon Besar)
+                        Surface(
+                            modifier = Modifier.fillMaxWidth().height(180.dp),
+                            shape = RoundedCornerShape(28.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    Icons.Default.DirectionsBike,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(80.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // Nama Produk & Harga Utama
+                        Text(
+                            text = produk.namaProduk,
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold)
+                        )
+                        Text(
+                            text = formatRupiah.format(produk.harga),
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // Stats Grid (Stok & Merk)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            InfoBadge(
+                                modifier = Modifier.weight(1f),
+                                label = "Stok Tersedia",
+                                value = "${produk.stok} Unit",
+                                icon = Icons.Default.Inventory2,
+                                color = if (produk.stok > 10) Color(0xFF10B981) else Color(0xFFEF4444)
+                            )
+                            InfoBadge(
+                                modifier = Modifier.weight(1f),
+                                label = "Merk Sepeda",
+                                value = produk.namaMerk ?: "-",
+                                icon = Icons.Default.BrandingWatermark,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // Deskripsi Section
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            border = BorderStroke(1.dp, Color(0xFFF1F3F5))
+                        ) {
+                            Column(modifier = Modifier.padding(20.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Description, null, modifier = Modifier.size(18.dp), tint = Color.Gray)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Deskripsi", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                                }
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = produk.deskripsi ?: "Tidak ada deskripsi untuk produk ini.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.DarkGray,
+                                    lineHeight = 22.sp
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(40.dp))
+
+                        // Action Buttons
+                        Button(
+                            onClick = { navigateToProdukEdit(produk.produkId!!) },
+                            modifier = Modifier.fillMaxWidth().height(58.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text("Edit Informasi Produk", fontWeight = FontWeight.Bold)
+                        }
+
+                        Spacer(modifier = Modifier.height(20.dp))
                     }
                 }
             }
             is ProdukDetailUiState.Error -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(state.message)
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(state.message, color = MaterialTheme.colorScheme.error)
                 }
             }
         }
@@ -133,24 +179,24 @@ fun ProdukDetailScreen(
 }
 
 @Composable
-fun DetailRow(label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+fun InfoBadge(
+    modifier: Modifier = Modifier,
+    label: String,
+    value: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    color: Color
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(20.dp),
+        color = Color.White,
+        border = BorderStroke(1.dp, Color(0xFFF1F3F5))
     ) {
-        Text(
-            text = label,
-            fontSize = 14.sp,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-            modifier = Modifier.weight(1f)
-        )
-        Text(
-            text = value,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.weight(1.5f)
-        )
+        Column(modifier = Modifier.padding(16.dp)) {
+            Icon(icon, null, modifier = Modifier.size(20.dp), tint = color)
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(label, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+            Text(value, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+        }
     }
 }
