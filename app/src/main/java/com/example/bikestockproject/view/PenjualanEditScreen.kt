@@ -1,16 +1,20 @@
 package com.example.bikestockproject.view
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -22,7 +26,6 @@ import com.example.bikestockproject.viewmodel.PenjualanFormUiState
 import com.example.bikestockproject.viewmodel.PenjualanFormViewModel
 import com.example.bikestockproject.viewmodel.ProdukDropdownUiState
 import com.example.bikestockproject.viewmodel.provider.PenyediaViewModel
-
 import java.text.NumberFormat
 import java.util.*
 
@@ -35,8 +38,12 @@ fun PenjualanEditScreen(
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context) }
     val token by tokenManager.token.collectAsState(initial = null)
-
     var expandedProduk by remember { mutableStateOf(false) }
+
+    // Warna Tema Konsisten
+    val slate900 = Color(0xFF0F172A)
+    val emerald600 = Color(0xFF059669)
+    val softWhite = Color(0xFFF8FAFC)
 
     val formatRupiah = remember {
         NumberFormat.getCurrencyInstance(Locale("id", "ID")).apply {
@@ -56,7 +63,7 @@ fun PenjualanEditScreen(
     LaunchedEffect(viewModel.penjualanFormUiState) {
         when (val state = viewModel.penjualanFormUiState) {
             is PenjualanFormUiState.Success -> {
-                Toast.makeText(context, "Penjualan berhasil diubah", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Transaksi berhasil diperbarui", Toast.LENGTH_SHORT).show()
                 navigateBack()
             }
             is PenjualanFormUiState.Error -> {
@@ -69,163 +76,202 @@ fun PenjualanEditScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Edit Penjualan") },
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        "Edit Transaksi",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            color = slate900
+                        )
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
+                        Icon(
+                            Icons.Default.ArrowBackIosNew,
+                            contentDescription = "Kembali",
+                            modifier = Modifier.size(20.dp),
+                            tint = slate900
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
-        ) {
-            Card(
-                modifier = Modifier.fillMaxWidth()
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues).background(softWhite)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
+                // --- RINGKASAN HARGA (SLATE THEME) ---
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = CardDefaults.cardColors(containerColor = slate900)
                 ) {
-                    Text(
-                        text = "Informasi Penjualan",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Nama Pembeli
-                    OutlinedTextField(
-                        value = viewModel.formState.namaPembeli,
-                        onValueChange = { viewModel.updateNamaPembeli(it) },
-                        label = { Text("Nama Pembeli") },
-                        isError = viewModel.formState.isNamaPembeliError,
-                        supportingText = {
-                            if (viewModel.formState.isNamaPembeliError) {
-                                Text("Nama pembeli tidak boleh kosong")
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Dropdown Produk
-                    ExposedDropdownMenuBox(
-                        expanded = expandedProduk,
-                        onExpandedChange = { expandedProduk = it }
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        Text("Update Total Pembayaran", color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp)
+                        Text(
+                            text = if (viewModel.formState.totalHarga > 0)
+                                formatRupiah.format(viewModel.formState.totalHarga) else "Rp0",
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Black,
+                                color = Color.White,
+                                letterSpacing = (-1).sp
+                            )
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // --- FORM CARD ---
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                    border = BorderStroke(1.dp, Color(0xFFE2E8F0))
+                ) {
+                    Column(modifier = Modifier.padding(24.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.EditNote, null, tint = emerald600, modifier = Modifier.size(22.dp))
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                "Informasi Penjualan",
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = slate900
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // Nama Pembeli
                         OutlinedTextField(
-                            value = when (val state = viewModel.produkDropdownUiState) {
-                                is ProdukDropdownUiState.Success -> {
-                                    state.produkList.find { it.produkId == viewModel.formState.produkId }?.namaProduk ?: ""
-                                }
-                                else -> ""
-                            },
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Pilih Produk") },
-                            trailingIcon = {
-                                Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                            },
-                            isError = viewModel.formState.isProdukIdError,
-                            supportingText = {
-                                if (viewModel.formState.isProdukIdError) {
-                                    Text("Produk harus dipilih")
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor()
+                            value = viewModel.formState.namaPembeli,
+                            onValueChange = { viewModel.updateNamaPembeli(it) },
+                            label = { Text("Nama Pembeli") },
+                            leadingIcon = { Icon(Icons.Default.Person, null, modifier = Modifier.size(20.dp), tint = slate900) },
+                            isError = viewModel.formState.isNamaPembeliError,
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            shape = RoundedCornerShape(14.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = emerald600,
+                                focusedLabelColor = emerald600
+                            )
                         )
 
-                        ExposedDropdownMenu(
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Dropdown Produk
+                        ExposedDropdownMenuBox(
                             expanded = expandedProduk,
-                            onDismissRequest = { expandedProduk = false }
+                            onExpandedChange = { expandedProduk = it }
                         ) {
-                            when (val state = viewModel.produkDropdownUiState) {
-                                is ProdukDropdownUiState.Success -> {
-                                    state.produkList.forEach { produk ->
-                                        DropdownMenuItem(
-                                            text = {
-                                                Column {
-                                                    Text(produk.namaProduk)
-                                                    Text(
-                                                        text = "${formatRupiah.format(produk.harga)} • Stok: ${produk.stok}",
-                                                        fontSize = 12.sp,
-                                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                                    )
-                                                }
-                                            },
-                                            onClick = {
-                                                viewModel.updateProdukId(produk.produkId!!, produk.harga)
-                                                expandedProduk = false
-                                            }
-                                        )
+                            OutlinedTextField(
+                                value = when (val state = viewModel.produkDropdownUiState) {
+                                    is ProdukDropdownUiState.Success -> {
+                                        state.produkList.find { it.produkId == viewModel.formState.produkId }?.namaProduk ?: ""
                                     }
+                                    else -> ""
+                                },
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Produk") },
+                                leadingIcon = { Icon(Icons.Default.DirectionsBike, null, modifier = Modifier.size(20.dp), tint = slate900) },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedProduk) },
+                                isError = viewModel.formState.isProdukIdError,
+                                modifier = Modifier.fillMaxWidth().menuAnchor(),
+                                shape = RoundedCornerShape(14.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = emerald600,
+                                    focusedLabelColor = emerald600
+                                )
+                            )
+
+                            ExposedDropdownMenu(
+                                expanded = expandedProduk,
+                                onDismissRequest = { expandedProduk = false },
+                                modifier = Modifier.background(Color.White)
+                            ) {
+                                when (val state = viewModel.produkDropdownUiState) {
+                                    is ProdukDropdownUiState.Success -> {
+                                        state.produkList.forEach { produk ->
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Column {
+                                                        Text(produk.namaProduk, fontWeight = FontWeight.Bold, color = slate900)
+                                                        Text(
+                                                            text = "${formatRupiah.format(produk.harga)} • Stok: ${produk.stok}",
+                                                            fontSize = 12.sp,
+                                                            color = Color.Gray
+                                                        )
+                                                    }
+                                                },
+                                                onClick = {
+                                                    viewModel.updateProdukId(produk.produkId!!, produk.harga)
+                                                    expandedProduk = false
+                                                }
+                                            )
+                                        }
+                                    }
+                                    else -> {}
                                 }
-                                else -> {}
                             }
                         }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Jumlah
+                        OutlinedTextField(
+                            value = viewModel.formState.jumlah,
+                            onValueChange = { viewModel.updateJumlah(it) },
+                            label = { Text("Jumlah Unit") },
+                            leadingIcon = { Icon(Icons.Default.AddShoppingCart, null, modifier = Modifier.size(20.dp), tint = slate900) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            isError = viewModel.formState.isJumlahError,
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            shape = RoundedCornerShape(14.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = emerald600,
+                                focusedLabelColor = emerald600
+                            )
+                        )
                     }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Jumlah
-                    OutlinedTextField(
-                        value = viewModel.formState.jumlah,
-                        onValueChange = { viewModel.updateJumlah(it) },
-                        label = { Text("Jumlah") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        isError = viewModel.formState.isJumlahError,
-                        supportingText = {
-                            if (viewModel.formState.isJumlahError) {
-                                Text("Jumlah tidak boleh kosong")
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Total Harga (Read Only)
-                    OutlinedTextField(
-                        value = if (viewModel.formState.totalHarga > 0)
-                            formatRupiah.format(viewModel.formState.totalHarga)
-                        else "",
-                        onValueChange = {},
-                        label = { Text("Total Harga") },
-                        readOnly = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-            Button(
-                onClick = { token?.let { viewModel.savePenjualan(it) } },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                enabled = viewModel.penjualanFormUiState !is PenjualanFormUiState.Loading
-            ) {
-                if (viewModel.penjualanFormUiState is PenjualanFormUiState.Loading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                } else {
-                    Text("Simpan Perubahan")
+                // Tombol Simpan (EMERALD)
+                Button(
+                    onClick = { token?.let { viewModel.savePenjualan(it) } },
+                    modifier = Modifier.fillMaxWidth().height(60.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = emerald600),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
+                    enabled = viewModel.penjualanFormUiState !is PenjualanFormUiState.Loading
+                ) {
+                    if (viewModel.penjualanFormUiState is PenjualanFormUiState.Loading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White,
+                            strokeWidth = 3.dp
+                        )
+                    } else {
+                        Icon(Icons.Default.CheckCircle, null)
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text("Simpan Perubahan", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    }
                 }
             }
         }

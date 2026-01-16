@@ -40,6 +40,11 @@ fun ProdukEditScreen(
     val token by tokenManager.token.collectAsState(initial = null)
     var expandedMerk by remember { mutableStateOf(false) }
 
+    // Warna Tema Konsisten
+    val slate900 = Color(0xFF0F172A) // Teks & Judul
+    val emerald600 = Color(0xFF059669) // Aksi Utama (Hijau Emerald)
+    val softWhite = Color(0xFFF8FAFC) // Background
+
     LaunchedEffect(token) {
         token?.let {
             if (it.isNotEmpty()) {
@@ -66,17 +71,30 @@ fun ProdukEditScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Edit Produk", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        "Edit Data Produk",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            color = slate900
+                        )
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
-                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Kembali", modifier = Modifier.size(20.dp))
+                        Icon(
+                            Icons.Default.ArrowBackIosNew,
+                            contentDescription = "Kembali",
+                            modifier = Modifier.size(20.dp),
+                            tint = slate900
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
             )
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues).background(Color(0xFFF8F9FA))) {
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues).background(softWhite)) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -89,16 +107,22 @@ fun ProdukEditScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    Column(modifier = Modifier.padding(20.dp)) {
+                    Column(modifier = Modifier.padding(24.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Info, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Informasi Produk", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Icon(Icons.Default.EditNote, null, tint = emerald600, modifier = Modifier.size(22.dp))
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                "Informasi Spesifikasi",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = slate900
+                            )
                         }
 
-                        Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
 
                         // 1. Dropdown Merk
                         ExposedDropdownMenuBox(
@@ -114,16 +138,21 @@ fun ProdukEditScreen(
                                 },
                                 onValueChange = {},
                                 readOnly = true,
-                                label = { Text("Merk Sepeda") },
+                                label = { Text("Pilih Merk") },
                                 leadingIcon = { Icon(Icons.Default.BrandingWatermark, null, modifier = Modifier.size(20.dp)) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedMerk) },
                                 modifier = Modifier.fillMaxWidth().menuAnchor(),
-                                shape = RoundedCornerShape(12.dp)
+                                shape = RoundedCornerShape(14.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = emerald600,
+                                    focusedLabelColor = emerald600
+                                )
                             )
 
                             ExposedDropdownMenu(
                                 expanded = expandedMerk,
-                                onDismissRequest = { expandedMerk = false }
+                                onDismissRequest = { expandedMerk = false },
+                                modifier = Modifier.background(Color.White)
                             ) {
                                 if (viewModel.merkDropdownUiState is MerkDropdownUiState.Success) {
                                     (viewModel.merkDropdownUiState as MerkDropdownUiState.Success).merkList.forEach { merk ->
@@ -145,12 +174,16 @@ fun ProdukEditScreen(
                         OutlinedTextField(
                             value = viewModel.formState.namaProduk,
                             onValueChange = { viewModel.updateNamaProduk(it) },
-                            label = { Text("Nama Produk") },
+                            label = { Text("Nama Model/Seri") },
                             leadingIcon = { Icon(Icons.Default.DirectionsBike, null, modifier = Modifier.size(20.dp)) },
                             isError = viewModel.formState.isNamaProdukError,
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(14.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = emerald600,
+                                focusedLabelColor = emerald600
+                            )
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -159,20 +192,28 @@ fun ProdukEditScreen(
                         OutlinedTextField(
                             value = viewModel.formState.harga,
                             onValueChange = { viewModel.updateHarga(it) },
-                            label = { Text("Harga (Rp)") },
+                            label = { Text("Harga Jual (Rp)") },
                             leadingIcon = { Icon(Icons.Default.Payments, null, modifier = Modifier.size(20.dp)) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             isError = viewModel.formState.isHargaError,
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(14.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = emerald600,
+                                focusedLabelColor = emerald600
+                            )
                         )
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        // 4. Kontrol Stok Modern
-                        Text("Pengaturan Stok", style = MaterialTheme.typography.labelMedium, color = Color.Gray)
-                        Spacer(modifier = Modifier.height(8.dp))
+                        // 4. Kontrol Stok Modern (Fungsionalitas Stepper Tetap)
+                        Text(
+                            "Update Stok Gudang",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                            color = Color.Gray
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -183,12 +224,13 @@ fun ProdukEditScreen(
                                     val current = viewModel.formState.stok.toIntOrNull() ?: 0
                                     if (current > 0) viewModel.updateStok((current - 1).toString())
                                 },
-                                shape = RoundedCornerShape(12.dp),
-                                color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f),
+                                shape = RoundedCornerShape(14.dp),
+                                color = softWhite,
+                                border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
                                 modifier = Modifier.size(56.dp)
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
-                                    Icon(Icons.Default.Remove, null, tint = MaterialTheme.colorScheme.error)
+                                    Icon(Icons.Default.Remove, null, tint = slate900)
                                 }
                             }
 
@@ -196,11 +238,19 @@ fun ProdukEditScreen(
                                 value = viewModel.formState.stok,
                                 onValueChange = { if (it.all { c -> c.isDigit() }) viewModel.updateStok(it) },
                                 modifier = Modifier.weight(1f),
-                                textStyle = TextStyle(fontSize = 18.sp, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold),
+                                textStyle = TextStyle(
+                                    fontSize = 18.sp,
+                                    textAlign = TextAlign.Center,
+                                    fontWeight = FontWeight.Bold,
+                                    color = slate900
+                                ),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                 isError = viewModel.formState.isStokError,
                                 singleLine = true,
-                                shape = RoundedCornerShape(12.dp)
+                                shape = RoundedCornerShape(14.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = emerald600
+                                )
                             )
 
                             Surface(
@@ -208,12 +258,12 @@ fun ProdukEditScreen(
                                     val current = viewModel.formState.stok.toIntOrNull() ?: 0
                                     viewModel.updateStok((current + 1).toString())
                                 },
-                                shape = RoundedCornerShape(12.dp),
-                                color = Color(0xFFE8F5E9), // Warna hijau muda soft
+                                shape = RoundedCornerShape(14.dp),
+                                color = emerald600, // Tombol Tambah Konsisten Hijau
                                 modifier = Modifier.size(56.dp)
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
-                                    Icon(Icons.Default.Add, null, tint = Color(0xFF2E7D32))
+                                    Icon(Icons.Default.Add, null, tint = Color.White)
                                 }
                             }
                         }
@@ -224,33 +274,38 @@ fun ProdukEditScreen(
                         OutlinedTextField(
                             value = viewModel.formState.deskripsi,
                             onValueChange = { viewModel.updateDeskripsi(it) },
-                            label = { Text("Deskripsi Tambahan (Opsional)") },
+                            label = { Text("Deskripsi Tambahan") },
                             modifier = Modifier.fillMaxWidth().height(120.dp),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(14.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = emerald600,
+                                focusedLabelColor = emerald600
+                            )
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(40.dp))
 
                 // --- ACTION BUTTON ---
                 Button(
                     onClick = { token?.let { viewModel.saveProduk(it) } },
-                    modifier = Modifier.fillMaxWidth().height(58.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
+                    modifier = Modifier.fillMaxWidth().height(62.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = emerald600),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
                     enabled = viewModel.produkFormUiState !is ProdukFormUiState.Loading
                 ) {
                     if (viewModel.produkFormUiState is ProdukFormUiState.Loading) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 3.dp)
                     } else {
-                        Icon(Icons.Default.Save, null)
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(Icons.Default.CheckCircle, null)
+                        Spacer(modifier = Modifier.width(10.dp))
                         Text("Simpan Perubahan", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }

@@ -4,11 +4,9 @@ import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -47,12 +45,15 @@ fun MerkListScreen(
     var merkToDelete by remember { mutableStateOf<MerkModel?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    // Fetch data saat token tersedia
+    // Definisi Warna Konsisten
+    val slate900 = Color(0xFF0F172A) // Untuk Teks Utama & Header
+    val emerald600 = Color(0xFF059669) // Untuk Aksi (Hijau)
+    val softWhite = Color(0xFFF8FAFC) // Untuk Background
+
     LaunchedEffect(token) {
         token?.let { if (it.isNotEmpty()) viewModel.getMerkList(it) }
     }
 
-    // Handle feedback saat hapus merk
     LaunchedEffect(viewModel.deleteMerkUiState) {
         when (val state = viewModel.deleteMerkUiState) {
             is DeleteMerkUiState.Success -> {
@@ -68,24 +69,27 @@ fun MerkListScreen(
         }
     }
 
-    // Dialog Konfirmasi Hapus
     if (showDeleteDialog && merkToDelete != null) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Hapus Merk") },
-            text = { Text("Yakin ingin menghapus merk ${merkToDelete?.namaMerk}?") },
+            title = { Text("Hapus Merk", fontWeight = FontWeight.Bold, color = slate900) },
+            text = { Text("Yakin ingin menghapus merk ${merkToDelete?.namaMerk}?", color = slate900) },
             confirmButton = {
                 Button(
                     onClick = {
                         showDeleteDialog = false
                         token?.let { t -> merkToDelete?.merkId?.let { id -> viewModel.deleteMerk(t, id) } }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) { Text("Hapus") }
+                    colors = ButtonDefaults.buttonColors(containerColor = emerald600), // Tombol Konfirmasi Hijau
+                    shape = RoundedCornerShape(12.dp)
+                ) { Text("Ya, Hapus", color = Color.White) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Batal") }
-            }
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Batal", color = Color.Gray)
+                }
+            },
+            shape = RoundedCornerShape(24.dp)
         )
     }
 
@@ -94,13 +98,28 @@ fun MerkListScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Daftar Merk", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
-                        Text("Kelola kategori sepeda Anda", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                        Text(
+                            "Daftar Merk",
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Black,
+                                color = slate900
+                            )
+                        )
+                        Text(
+                            "Kelola Kategori Sepeda",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.Gray
+                        )
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
-                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Icon(
+                            Icons.Default.ArrowBackIosNew,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = slate900
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
@@ -109,33 +128,38 @@ fun MerkListScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = navigateToMerkEntry,
-                containerColor = MaterialTheme.colorScheme.primary,
+                containerColor = emerald600, // Tombol Tambah Hijau
                 contentColor = Color.White,
                 shape = RoundedCornerShape(16.dp),
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                text = { Text(text = "Tambah") }
+                text = { Text(text = "Tambah Merk", fontWeight = FontWeight.Bold) }
             )
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues).background(Color(0xFFF8F9FA))) {
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues).background(softWhite)) {
             when (val state = viewModel.merkListUiState) {
                 is MerkListUiState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        color = emerald600 // Loading Hijau
+                    )
                 }
                 is MerkListUiState.Success -> {
                     if (state.merkList.isEmpty()) {
-                        EmptyStateMerk()
+                        EmptyStateMerk(slate900)
                     } else {
                         LazyVerticalGrid(
                             columns = GridCells.Fixed(2),
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                            contentPadding = PaddingValues(20.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             items(state.merkList) { merk ->
                                 MerkGridCard(
                                     merk = merk,
+                                    accentColor = emerald600,
+                                    textColor = slate900,
                                     onClick = { navigateToProdukByMerk(merk.merkId!!, merk.namaMerk) },
                                     onEdit = { navigateToMerkEdit(merk.merkId!!) },
                                     onDelete = {
@@ -148,7 +172,11 @@ fun MerkListScreen(
                     }
                 }
                 is MerkListUiState.Error -> {
-                    Text("Terjadi kesalahan: ${state.message}", modifier = Modifier.align(Alignment.Center), color = Color.Red)
+                    Text(
+                        "Gagal memuat data",
+                        modifier = Modifier.align(Alignment.Center),
+                        color = Color.Red
+                    )
                 }
             }
         }
@@ -158,6 +186,8 @@ fun MerkListScreen(
 @Composable
 fun MerkGridCard(
     merk: MerkModel,
+    accentColor: Color,
+    textColor: Color,
     onClick: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit
@@ -166,77 +196,113 @@ fun MerkGridCard(
 
     Surface(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().aspectRatio(1f),
-        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier.fillMaxWidth().aspectRatio(0.9f),
+        shape = RoundedCornerShape(28.dp),
         color = Color.White,
-        shadowElevation = 2.dp,
-        border = BorderStroke(1.dp, Color(0xFFF1F3F5))
+        border = BorderStroke(1.dp, Color(0xFFE2E8F0))
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
+            // Menu Edit/Hapus
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopEnd) {
-                IconButton(onClick = { showMenu = true }, modifier = Modifier.size(24.dp)) {
-                    Icon(Icons.Default.MoreVert, contentDescription = null, tint = Color.Gray)
+                IconButton(onClick = { showMenu = true }, modifier = Modifier.size(28.dp)) {
+                    Icon(Icons.Default.MoreHoriz, contentDescription = null, tint = Color.LightGray)
                 }
-                DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false },
+                    shape = RoundedCornerShape(16.dp)
+                ) {
                     DropdownMenuItem(
-                        text = { Text("Edit") },
+                        text = { Text("Edit Data") },
                         onClick = { showMenu = false; onEdit() },
-                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                        leadingIcon = { Icon(Icons.Default.EditNote, contentDescription = null) }
                     )
                     DropdownMenuItem(
-                        text = { Text("Hapus", color = Color.Red) },
+                        text = { Text("Hapus Merk", color = Color.Red) },
                         onClick = { showMenu = false; onDelete() },
-                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = Color.Red, modifier = Modifier.size(18.dp)) }
+                        leadingIcon = { Icon(Icons.Default.DeleteSweep, contentDescription = null, tint = Color.Red) }
                     )
                 }
             }
 
+            // Lingkaran Ikon (Aksen Hijau Pudar)
             Surface(
                 shape = CircleShape,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                modifier = Modifier.size(60.dp)
+                color = accentColor.copy(alpha = 0.1f),
+                modifier = Modifier.size(64.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Default.DirectionsBike,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = accentColor,
                         modifier = Modifier.size(32.dp)
                     )
                 }
             }
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            // Teks Nama Merk (Warna Hitam/Slate)
+            Column(
+                modifier = Modifier.padding(bottom = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(
                     text = merk.namaMerk,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        color = textColor,
+                        letterSpacing = (-0.5).sp
+                    ),
                     textAlign = TextAlign.Center,
                     maxLines = 1
                 )
-                Text(
-                    text = "Lihat Produk",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Badge Informasi (Netral Abu-abu)
+                Surface(
+                    color = Color(0xFFF1F5F9),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = "Lihat Produk",
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
-            Spacer(modifier = Modifier.height(4.dp))
         }
     }
 }
 
 @Composable
-fun EmptyStateMerk() {
+fun EmptyStateMerk(textColor: Color) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(Icons.Default.Inventory, contentDescription = null, modifier = Modifier.size(80.dp), tint = Color.LightGray)
+        Icon(
+            Icons.Default.Inventory2,
+            contentDescription = null,
+            modifier = Modifier.size(80.dp),
+            tint = Color(0xFFE2E8F0)
+        )
         Spacer(modifier = Modifier.height(16.dp))
-        Text("Belum ada merk", color = Color.Gray, fontWeight = FontWeight.Medium)
+        Text(
+            "Belum Ada Merk",
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            color = textColor
+        )
+        Text(
+            "Ketuk tombol + untuk menambah kategori",
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.Gray
+        )
     }
 }

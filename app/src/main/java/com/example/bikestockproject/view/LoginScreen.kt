@@ -14,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -28,7 +29,7 @@ import com.example.bikestockproject.local.TokenManager
 import com.example.bikestockproject.viewmodel.LoginUiState
 import com.example.bikestockproject.viewmodel.LoginViewModel
 import com.example.bikestockproject.viewmodel.provider.PenyediaViewModel
-
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,7 +43,11 @@ fun LoginScreen(
     val scope = rememberCoroutineScope()
     var passwordVisible by remember { mutableStateOf(false) }
 
-    // Mengambil pesan sukses dari string resource
+    // Warna Modern Slate & Emerald
+    val slate900 = Color(0xFF0F172A)
+    val emeraldAccent = Color(0xFF10B981)
+    val softWhite = Color(0xFFF8FAFC)
+
     val loginSuccessMsg = stringResource(R.string.login_success)
 
     LaunchedEffect(viewModel.loginUiState) {
@@ -54,7 +59,7 @@ fun LoginScreen(
                         tokenManager.saveAuthData(token, 1, viewModel.formState.username, "user")
                     }
                     Toast.makeText(context, loginSuccessMsg, Toast.LENGTH_SHORT).show()
-                    kotlinx.coroutines.delay(300)
+                    delay(300)
                     navigateToHome()
                 }
                 viewModel.resetState()
@@ -72,30 +77,32 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.surface)
+                .background(softWhite)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 28.dp),
+                    .padding(horizontal = 32.dp),
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Center
             ) {
-                // Header Area menggunakan String Resource
+                // Header Area
                 Text(
                     text = stringResource(R.string.login_header),
-                    style = MaterialTheme.typography.headlineLarge.copy(
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.primary
+                    style = MaterialTheme.typography.displaySmall.copy(
+                        fontWeight = FontWeight.Black,
+                        color = slate900,
+                        letterSpacing = (-1).sp
                     )
                 )
                 Text(
                     text = stringResource(R.string.login_subheader),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(top = 8.dp)
                 )
 
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(48.dp))
 
                 // Username Field
                 OutlinedTextField(
@@ -103,15 +110,17 @@ fun LoginScreen(
                     onValueChange = { viewModel.updateUsername(it) },
                     label = { Text(stringResource(R.string.label_username)) },
                     leadingIcon = {
-                        Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Icon(Icons.Default.Person, contentDescription = null, tint = slate900)
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(16.dp),
                     singleLine = true,
                     isError = viewModel.formState.isUsernameError,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        focusedBorderColor = emeraldAccent,
+                        focusedLabelColor = emeraldAccent,
+                        unfocusedBorderColor = Color.LightGray.copy(alpha = 0.5f),
+                        cursorColor = emeraldAccent
                     )
                 )
 
@@ -124,7 +133,7 @@ fun LoginScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 // Password Field
                 OutlinedTextField(
@@ -132,25 +141,28 @@ fun LoginScreen(
                     onValueChange = { viewModel.updatePassword(it) },
                     label = { Text(stringResource(R.string.label_password)) },
                     leadingIcon = {
-                        Icon(Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Icon(Icons.Default.Lock, contentDescription = null, tint = slate900)
                     },
                     trailingIcon = {
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
                                 imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                contentDescription = null
+                                contentDescription = null,
+                                tint = Color.Gray
                             )
                         }
                     },
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(16.dp),
                     singleLine = true,
                     isError = viewModel.formState.isPasswordError,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        focusedBorderColor = emeraldAccent,
+                        focusedLabelColor = emeraldAccent,
+                        unfocusedBorderColor = Color.LightGray.copy(alpha = 0.5f),
+                        cursorColor = emeraldAccent
                     )
                 )
 
@@ -163,40 +175,46 @@ fun LoginScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                // Bagian Lupa Password sudah dihapus untuk tampilan yang lebih minimalis
 
-                Text(
-                    text = stringResource(R.string.forgot_password),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.align(Alignment.End)
-                )
-
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(48.dp))
 
                 // Login Button
                 Button(
                     onClick = { viewModel.login() },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(58.dp),
-                    shape = RoundedCornerShape(14.dp),
+                        .height(62.dp),
+                    shape = RoundedCornerShape(18.dp),
                     enabled = viewModel.loginUiState !is LoginUiState.Loading,
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = emeraldAccent,
+                        contentColor = Color.White,
+                        disabledContainerColor = emeraldAccent.copy(alpha = 0.5f)
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
                 ) {
                     if (viewModel.loginUiState is LoginUiState.Loading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            strokeWidth = 2.dp
+                            color = Color.White,
+                            strokeWidth = 3.dp
                         )
                     } else {
                         Text(
                             text = stringResource(R.string.btn_login),
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.ExtraBold,
+                                letterSpacing = 1.sp
+                            )
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Opsional: Text bantuan di bawah jika user belum punya akun
+                // (Anda bisa menambahkan navigasi Register di sini nanti)
             }
         }
     }

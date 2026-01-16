@@ -28,13 +28,18 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PenjualanDetailScreen(
-    navigateToPenjualanEdit: (Int) -> Unit, // Tambahkan parameter ini
+    navigateToPenjualanEdit: (Int) -> Unit,
     navigateBack: () -> Unit,
     viewModel: PenjualanDetailViewModel = viewModel(factory = PenyediaViewModel.Factory)
 ) {
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context) }
     val token by tokenManager.token.collectAsState(initial = null)
+
+    // Warna Tema Konsisten
+    val slate900 = Color(0xFF0F172A) // Untuk Teks & Header
+    val emerald600 = Color(0xFF059669) // Untuk Aksi Utama (Ijo Emerald)
+    val softWhite = Color(0xFFF8FAFC) // Untuk Background
 
     LaunchedEffect(token) {
         token?.let { if (it.isNotEmpty()) viewModel.getPenjualanDetail(it) }
@@ -43,13 +48,22 @@ fun PenjualanDetailScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Detail Transaksi", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        "Detail Transaksi",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            color = slate900
+                        )
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(
                             imageVector = Icons.Default.ArrowBackIosNew,
                             contentDescription = "Kembali",
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(20.dp),
+                            tint = slate900
                         )
                     }
                 },
@@ -60,7 +74,7 @@ fun PenjualanDetailScreen(
         when (val state = viewModel.penjualanDetailUiState) {
             is PenjualanDetailUiState.Loading -> {
                 Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = emerald600)
                 }
             }
             is PenjualanDetailUiState.Success -> {
@@ -69,69 +83,95 @@ fun PenjualanDetailScreen(
                     maximumFractionDigits = 0
                 }
 
-                Box(modifier = Modifier.fillMaxSize().padding(paddingValues).background(Color(0xFFF8F9FA))) {
+                Box(modifier = Modifier.fillMaxSize().padding(paddingValues).background(softWhite)) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
                             .padding(24.dp)
                     ) {
-                        // Header Card
+                        // --- HEADER CARD (SLATE THEME) ---
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(28.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)
+                            colors = CardDefaults.cardColors(containerColor = slate900)
                         ) {
-                            Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("Total Transaksi", color = Color.White.copy(alpha = 0.7f), style = MaterialTheme.typography.labelLarge)
+                            Column(
+                                modifier = Modifier.padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    "Total Pembayaran",
+                                    color = Color.White.copy(alpha = 0.6f),
+                                    style = MaterialTheme.typography.labelLarge
+                                )
                                 Text(
                                     text = formatRupiah.format(penjualan.totalHarga),
-                                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold, color = Color.White)
+                                    style = MaterialTheme.typography.headlineMedium.copy(
+                                        fontWeight = FontWeight.Black,
+                                        color = Color.White,
+                                        letterSpacing = (-1).sp
+                                    )
                                 )
                             }
                         }
 
                         Spacer(modifier = Modifier.height(24.dp))
 
-                        // Detail Card
+                        // --- DETAIL CARD ---
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(24.dp),
                             colors = CardDefaults.cardColors(containerColor = Color.White),
-                            border = BorderStroke(1.dp, Color(0xFFF1F3F5))
+                            border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                         ) {
-                            Column(modifier = Modifier.padding(20.dp)) {
-                                Text("Rincian Pesanan", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
-                                Spacer(modifier = Modifier.height(16.dp))
+                            Column(modifier = Modifier.padding(24.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Receipt, null, tint = emerald600, modifier = Modifier.size(20.dp))
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Text(
+                                        "Rincian Pesanan",
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = slate900
+                                        )
+                                    )
+                                }
 
-                                // Pemanggilan fungsi yang sebelumnya error
-                                DetailRowCustom(label = "ID Transaksi", value = "#${penjualan.penjualanId}")
-                                DetailRowCustom(label = "Pembeli", value = penjualan.namaPembeli)
-                                DetailRowCustom(label = "Produk", value = penjualan.namaProduk ?: "-")
-                                DetailRowCustom(label = "Jumlah", value = "${penjualan.jumlah} Unit")
-                                DetailRowCustom(label = "Tanggal", value = penjualan.tanggal ?: "-")
+                                Divider(modifier = Modifier.padding(vertical = 16.dp), color = Color(0xFFF1F5F9))
+
+                                DetailRowCustom(label = "ID Transaksi", value = "#${penjualan.penjualanId}", slateColor = slate900)
+                                DetailRowCustom(label = "Nama Pembeli", value = penjualan.namaPembeli, slateColor = slate900)
+                                DetailRowCustom(label = "Produk Sepeda", value = penjualan.namaProduk ?: "-", slateColor = slate900)
+                                DetailRowCustom(label = "Jumlah Beli", value = "${penjualan.jumlah} Unit", slateColor = slate900)
+                                DetailRowCustom(label = "Tanggal Transaksi", value = penjualan.tanggal ?: "-", slateColor = slate900)
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(32.dp))
+                        Spacer(modifier = Modifier.height(40.dp))
 
-                        // Tombol Edit
+                        // --- ACTION BUTTONS (EMERALD) ---
                         Button(
                             onClick = { navigateToPenjualanEdit(penjualan.penjualanId!!) },
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
-                            shape = RoundedCornerShape(16.dp)
+                            modifier = Modifier.fillMaxWidth().height(60.dp),
+                            shape = RoundedCornerShape(18.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = emerald600),
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
                         ) {
-                            Icon(Icons.Default.Edit, null, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Edit Transaksi", fontWeight = FontWeight.Bold)
+                            Icon(Icons.Default.EditNote, null, modifier = Modifier.size(22.dp))
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text("Edit Transaksi", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         }
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
                         OutlinedButton(
                             onClick = navigateBack,
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
-                            shape = RoundedCornerShape(16.dp)
+                            modifier = Modifier.fillMaxWidth().height(60.dp),
+                            shape = RoundedCornerShape(18.dp),
+                            border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = slate900)
                         ) {
                             Text("Kembali ke Daftar", fontWeight = FontWeight.Bold)
                         }
@@ -147,18 +187,20 @@ fun PenjualanDetailScreen(
     }
 }
 
-// FUNGSI INI HARUS ADA DI DALAM FILE YANG SAMA ATAU DI IMPORT
 @Composable
-fun DetailRowCustom(label: String, value: String) {
+fun DetailRowCustom(label: String, value: String, slateColor: Color) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(text = label, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
         Text(
             text = value,
-            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+            style = MaterialTheme.typography.bodyLarge.copy(
+                fontWeight = FontWeight.Bold,
+                color = slateColor
+            ),
             modifier = Modifier.padding(start = 16.dp)
         )
     }

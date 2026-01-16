@@ -1,12 +1,18 @@
 package com.example.bikestockproject.view
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.BrandingWatermark
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -27,6 +33,11 @@ fun MerkEntryScreen(
     val tokenManager = remember { TokenManager(context) }
     val token by tokenManager.token.collectAsState(initial = null)
 
+    // Definisi Warna Konsisten
+    val slate900 = Color(0xFF0F172A) // Untuk Teks & Judul
+    val emerald600 = Color(0xFF059669) // Untuk Aksi (Hijau)
+    val softWhite = Color(0xFFF8FAFC) // Untuk Background
+
     // Observe save state
     LaunchedEffect(viewModel.merkFormUiState) {
         when (val state = viewModel.merkFormUiState) {
@@ -44,68 +55,119 @@ fun MerkEntryScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Tambah Merk") },
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        "Tambah Merk Baru",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            color = slate900
+                        )
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
+                        Icon(
+                            Icons.Default.ArrowBackIosNew,
+                            contentDescription = "Kembali",
+                            modifier = Modifier.size(20.dp),
+                            tint = slate900
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
             )
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(softWhite)
                 .padding(paddingValues)
-                .padding(16.dp)
+                .padding(24.dp)
         ) {
+            // Card Input Informasi
             Card(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0))
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(24.dp)
                 ) {
-                    Text(
-                        text = "Informasi Merk",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.BrandingWatermark,
+                            contentDescription = null,
+                            tint = emerald600,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "Informasi Merk",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = slate900
+                            )
+                        )
+                    }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
 
                     OutlinedTextField(
                         value = viewModel.formState.namaMerk,
                         onValueChange = { viewModel.updateNamaMerk(it) },
-                        label = { Text("Nama Merk") },
+                        label = { Text("Nama Merk Sepeda") },
+                        placeholder = { Text("Contoh: Polygon, United, dll") },
                         isError = viewModel.formState.isNamaMerkError,
                         supportingText = {
                             if (viewModel.formState.isNamaMerkError) {
-                                Text("Nama merk tidak boleh kosong")
+                                Text("Nama merk wajib diisi")
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        singleLine = true,
+                        shape = RoundedCornerShape(14.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = emerald600,
+                            focusedLabelColor = emerald600,
+                            cursorColor = emerald600
+                        )
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.weight(1f)) // Mendorong tombol ke bawah
 
+            // Tombol Simpan Konsisten Emerald
             Button(
                 onClick = { token?.let { viewModel.saveMerk(it) } },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
-                enabled = viewModel.merkFormUiState !is MerkFormUiState.Loading
+                    .height(60.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = emerald600,
+                    contentColor = Color.White
+                ),
+                enabled = viewModel.merkFormUiState !is MerkFormUiState.Loading,
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
             ) {
                 if (viewModel.merkFormUiState is MerkFormUiState.Loading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary
+                        color = Color.White,
+                        strokeWidth = 3.dp
                     )
                 } else {
-                    Text("Simpan")
+                    Icon(Icons.Default.Check, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        "Simpan Merk",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    )
                 }
             }
         }

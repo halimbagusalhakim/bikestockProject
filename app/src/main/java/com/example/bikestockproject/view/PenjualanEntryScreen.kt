@@ -39,6 +39,11 @@ fun PenjualanEntryScreen(
     val token by tokenManager.token.collectAsState(initial = null)
     var expandedProduk by remember { mutableStateOf(false) }
 
+    // Warna Tema Konsisten
+    val slate900 = Color(0xFF0F172A) // Untuk Teks & Header
+    val emerald600 = Color(0xFF059669) // Untuk Aksi (Hijau Emerald)
+    val softWhite = Color(0xFFF8FAFC) // Untuk Background
+
     val formatRupiah = remember {
         NumberFormat.getCurrencyInstance(Locale("id", "ID")).apply {
             maximumFractionDigits = 0
@@ -66,37 +71,54 @@ fun PenjualanEntryScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Input Transaksi", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        "Input Transaksi",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            color = slate900
+                        )
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
-                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Kembali", modifier = Modifier.size(20.dp))
+                        Icon(
+                            Icons.Default.ArrowBackIosNew,
+                            contentDescription = "Kembali",
+                            modifier = Modifier.size(20.dp),
+                            tint = slate900
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
             )
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues).background(Color(0xFFF8F9FA))) {
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues).background(softWhite)) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(24.dp)
             ) {
-                // --- RINGKASAN HARGA CARD ---
+                // --- RINGKASAN HARGA CARD (SLATE THEME) ---
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)
+                    shape = RoundedCornerShape(28.dp),
+                    colors = CardDefaults.cardColors(containerColor = slate900)
                 ) {
                     Column(
                         modifier = Modifier.padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("Total Pembayaran", color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
+                        Text("Total Pembayaran", color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp)
                         Text(
                             text = if (viewModel.formState.totalHarga > 0) formatRupiah.format(viewModel.formState.totalHarga) else "Rp0",
-                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold, color = Color.White)
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Black,
+                                color = Color.White,
+                                letterSpacing = (-1).sp
+                            )
                         )
                     }
                 }
@@ -108,10 +130,16 @@ fun PenjualanEntryScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0))
                 ) {
-                    Column(modifier = Modifier.padding(20.dp)) {
-                        Text("Informasi Pembeli & Produk", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                    Column(modifier = Modifier.padding(24.dp)) {
+                        Text(
+                            "Detail Penjualan",
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = slate900
+                        )
                         Spacer(modifier = Modifier.height(20.dp))
 
                         // Nama Pembeli
@@ -119,11 +147,15 @@ fun PenjualanEntryScreen(
                             value = viewModel.formState.namaPembeli,
                             onValueChange = { viewModel.updateNamaPembeli(it) },
                             label = { Text("Nama Pembeli") },
-                            leadingIcon = { Icon(Icons.Default.Person, null, modifier = Modifier.size(20.dp)) },
+                            leadingIcon = { Icon(Icons.Default.Person, null, modifier = Modifier.size(20.dp), tint = slate900) },
                             isError = viewModel.formState.isNamaPembeliError,
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(14.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = emerald600,
+                                focusedLabelColor = emerald600
+                            )
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -142,17 +174,22 @@ fun PenjualanEntryScreen(
                                 },
                                 onValueChange = {},
                                 readOnly = true,
-                                label = { Text("Produk") },
-                                leadingIcon = { Icon(Icons.Default.ShoppingBag, null, modifier = Modifier.size(20.dp)) },
+                                label = { Text("Pilih Produk Sepeda") },
+                                leadingIcon = { Icon(Icons.Default.DirectionsBike, null, modifier = Modifier.size(20.dp), tint = slate900) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedProduk) },
                                 isError = viewModel.formState.isProdukIdError,
                                 modifier = Modifier.fillMaxWidth().menuAnchor(),
-                                shape = RoundedCornerShape(12.dp)
+                                shape = RoundedCornerShape(14.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = emerald600,
+                                    focusedLabelColor = emerald600
+                                )
                             )
 
                             ExposedDropdownMenu(
                                 expanded = expandedProduk,
-                                onDismissRequest = { expandedProduk = false }
+                                onDismissRequest = { expandedProduk = false },
+                                modifier = Modifier.background(Color.White)
                             ) {
                                 when (val state = viewModel.produkDropdownUiState) {
                                     is ProdukDropdownUiState.Success -> {
@@ -160,7 +197,7 @@ fun PenjualanEntryScreen(
                                             DropdownMenuItem(
                                                 text = {
                                                     Column {
-                                                        Text(produk.namaProduk, fontWeight = FontWeight.Bold)
+                                                        Text(produk.namaProduk, fontWeight = FontWeight.Bold, color = slate900)
                                                         Text(
                                                             text = "${formatRupiah.format(produk.harga)} • Stok: ${produk.stok}",
                                                             fontSize = 12.sp,
@@ -187,31 +224,36 @@ fun PenjualanEntryScreen(
                             value = viewModel.formState.jumlah,
                             onValueChange = { viewModel.updateJumlah(it) },
                             label = { Text("Jumlah Unit") },
-                            leadingIcon = { Icon(Icons.Default.AddShoppingCart, null, modifier = Modifier.size(20.dp)) },
+                            leadingIcon = { Icon(Icons.Default.AddShoppingCart, null, modifier = Modifier.size(20.dp), tint = slate900) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             isError = viewModel.formState.isJumlahError,
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(14.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = emerald600,
+                                focusedLabelColor = emerald600
+                            )
                         )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // --- TOMBOL SIMPAN ---
+                // --- TOMBOL SIMPAN (EMERALD) ---
                 Button(
                     onClick = { token?.let { viewModel.savePenjualan(it) } },
-                    modifier = Modifier.fillMaxWidth().height(58.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
+                    modifier = Modifier.fillMaxWidth().height(62.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = emerald600),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
                     enabled = viewModel.penjualanFormUiState !is PenjualanFormUiState.Loading
                 ) {
                     if (viewModel.penjualanFormUiState is PenjualanFormUiState.Loading) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 3.dp)
                     } else {
-                        Icon(Icons.Default.CheckCircle, null)
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(Icons.Default.AssignmentTurnedIn, null)
+                        Spacer(modifier = Modifier.width(10.dp))
                         Text("Simpan Transaksi", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
                 }

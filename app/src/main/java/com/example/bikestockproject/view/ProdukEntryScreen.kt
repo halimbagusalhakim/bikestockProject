@@ -1,17 +1,20 @@
 package com.example.bikestockproject.view
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -28,7 +31,7 @@ import com.example.bikestockproject.viewmodel.provider.PenyediaViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProdukEntryScreen(
-    namaMerk: String, // Nama merk dikirim dari navigasi
+    namaMerk: String,
     navigateBack: () -> Unit,
     viewModel: ProdukFormViewModel = viewModel(factory = PenyediaViewModel.Factory)
 ) {
@@ -36,7 +39,11 @@ fun ProdukEntryScreen(
     val tokenManager = remember { TokenManager(context) }
     val token by tokenManager.token.collectAsState(initial = null)
 
-    // Effect untuk menangani status simpan
+    // Warna Tema Konsisten
+    val slate900 = Color(0xFF0F172A)
+    val emerald600 = Color(0xFF059669)
+    val softWhite = Color(0xFFF8FAFC)
+
     LaunchedEffect(viewModel.produkFormUiState) {
         when (val state = viewModel.produkFormUiState) {
             is ProdukFormUiState.Success -> {
@@ -53,99 +60,142 @@ fun ProdukEntryScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Tambah Produk - $namaMerk") },
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        "Tambah Produk",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            color = slate900
+                        )
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
+                        Icon(
+                            Icons.Default.ArrowBackIosNew,
+                            contentDescription = "Kembali",
+                            modifier = Modifier.size(20.dp),
+                            tint = slate900
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
             )
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(softWhite)
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(24.dp)
         ) {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Informasi Produk",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.DirectionsBike, null, tint = emerald600, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            "Spesifikasi Produk",
+                            fontWeight = FontWeight.Bold,
+                            color = slate900,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                    // Field Merk (Read-Only) karena sudah otomatis dari halaman sebelumnya
+                    // Field Merk (Read-Only)
                     OutlinedTextField(
                         value = namaMerk,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Merk") },
-                        modifier = Modifier.fillMaxWidth()
+                        label = { Text("Merk Sepeda") },
+                        leadingIcon = { Icon(Icons.Default.BrandingWatermark, null, modifier = Modifier.size(20.dp)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedContainerColor = softWhite,
+                            focusedBorderColor = Color.LightGray
+                        )
                     )
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     // Nama Produk
                     OutlinedTextField(
                         value = viewModel.formState.namaProduk,
                         onValueChange = { viewModel.updateNamaProduk(it) },
-                        label = { Text("Nama Produk") },
-                        isError = viewModel.formState.isNamaProdukError,
+                        label = { Text("Nama Model/Seri") },
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        shape = RoundedCornerShape(14.dp),
+                        singleLine = true,
+                        isError = viewModel.formState.isNamaProdukError,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = emerald600,
+                            focusedLabelColor = emerald600
+                        )
                     )
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     // Harga
                     OutlinedTextField(
                         value = viewModel.formState.harga,
                         onValueChange = { viewModel.updateHarga(it) },
-                        label = { Text("Harga") },
+                        label = { Text("Harga (Rp)") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        isError = viewModel.formState.isHargaError,
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        shape = RoundedCornerShape(14.dp),
+                        singleLine = true,
+                        isError = viewModel.formState.isHargaError,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = emerald600,
+                            focusedLabelColor = emerald600
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Input Stok
+                    Text(
+                        text = "Stok Gudang",
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = if (viewModel.formState.isStokError) Color.Red else slate900
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Input Stok dengan Tombol + dan -
-                    Text(
-                        text = "Stok",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (viewModel.formState.isStokError)
-                            MaterialTheme.colorScheme.error
-                        else
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         // Tombol Kurang (-)
-                        OutlinedButton(
+                        Surface(
                             onClick = {
                                 val current = viewModel.formState.stok.toIntOrNull() ?: 0
                                 if (current > 0) viewModel.updateStok((current - 1).toString())
                             },
                             modifier = Modifier.size(56.dp),
-                            contentPadding = PaddingValues(0.dp)
+                            shape = RoundedCornerShape(14.dp),
+                            color = softWhite,
+                            border = BorderStroke(1.dp, Color(0xFFE2E8F0))
                         ) {
-                            Text("-", fontSize = 24.sp)
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(Icons.Default.Remove, null, tint = slate900)
+                            }
                         }
 
-                        // Input Teks Stok (Rata Tengah)
+                        // Input Teks Stok
                         OutlinedTextField(
                             value = viewModel.formState.stok,
                             onValueChange = {
@@ -156,67 +206,86 @@ fun ProdukEntryScreen(
                             modifier = Modifier.weight(1f),
                             textStyle = TextStyle(
                                 fontSize = 18.sp,
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.Bold,
+                                color = slate900
                             ),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             isError = viewModel.formState.isStokError,
-                            singleLine = true
+                            singleLine = true,
+                            shape = RoundedCornerShape(14.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = emerald600
+                            )
                         )
 
                         // Tombol Tambah (+)
-                        OutlinedButton(
+                        Surface(
                             onClick = {
                                 val current = viewModel.formState.stok.toIntOrNull() ?: 0
                                 viewModel.updateStok((current + 1).toString())
                             },
                             modifier = Modifier.size(56.dp),
-                            contentPadding = PaddingValues(0.dp)
+                            shape = RoundedCornerShape(14.dp),
+                            color = emerald600
                         ) {
-                            Text("+", fontSize = 24.sp)
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(Icons.Default.Add, null, tint = Color.White)
+                            }
                         }
                     }
 
                     if (viewModel.formState.isStokError) {
                         Text(
                             text = "Stok tidak boleh kosong",
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                            color = Color.Red,
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(start = 4.dp, top = 4.dp)
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     // Deskripsi
                     OutlinedTextField(
                         value = viewModel.formState.deskripsi,
                         onValueChange = { viewModel.updateDeskripsi(it) },
-                        label = { Text("Deskripsi (Opsional)") },
+                        label = { Text("Deskripsi Singkat (Opsional)") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(120.dp),
-                        maxLines = 4
+                        shape = RoundedCornerShape(14.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = emerald600,
+                            focusedLabelColor = emerald600
+                        )
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // Tombol Simpan
             Button(
                 onClick = { token?.let { viewModel.saveProduk(it) } },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(60.dp),
+                shape = RoundedCornerShape(18.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = emerald600),
                 enabled = viewModel.produkFormUiState !is ProdukFormUiState.Loading
             ) {
                 if (viewModel.produkFormUiState is ProdukFormUiState.Loading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary
+                        color = Color.White,
+                        strokeWidth = 3.dp
                     )
                 } else {
-                    Text("Simpan Produk")
+                    Text(
+                        "Simpan Katalog Produk",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    )
                 }
             }
         }

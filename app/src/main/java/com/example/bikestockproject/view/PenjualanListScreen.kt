@@ -1,6 +1,7 @@
 package com.example.bikestockproject.view
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -44,6 +45,11 @@ fun PenjualanListScreen(
     var penjualanToDelete by remember { mutableStateOf<PenjualanModel?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
+    // Warna Tema Konsisten
+    val slate900 = Color(0xFF0F172A) // Teks & Judul
+    val emerald600 = Color(0xFF059669) // Aksi Utama (Ijo Emerald)
+    val softWhite = Color(0xFFF8FAFC) // Background
+
     LaunchedEffect(token) {
         token?.let { if (it.isNotEmpty()) viewModel.getPenjualanList(it) }
     }
@@ -66,9 +72,8 @@ fun PenjualanListScreen(
     if (showDeleteDialog && penjualanToDelete != null) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            icon = { Icon(Icons.Default.DeleteForever, null, tint = MaterialTheme.colorScheme.error) },
-            title = { Text("Hapus Transaksi") },
-            text = { Text("Apakah Anda yakin ingin menghapus data penjualan atas nama ${penjualanToDelete?.namaPembeli}?") },
+            title = { Text("Hapus Transaksi", fontWeight = FontWeight.Bold, color = slate900) },
+            text = { Text("Hapus data penjualan atas nama ${penjualanToDelete?.namaPembeli}?", color = slate900) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -77,12 +82,16 @@ fun PenjualanListScreen(
                             penjualanToDelete?.penjualanId?.let { id -> viewModel.deletePenjualan(tkn, id) }
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) { Text("Hapus") }
+                    colors = ButtonDefaults.buttonColors(containerColor = emerald600),
+                    shape = RoundedCornerShape(12.dp)
+                ) { Text("Ya, Hapus") }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showDeleteDialog = false }) { Text("Batal") }
-            }
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Batal", color = Color.Gray)
+                }
+            },
+            shape = RoundedCornerShape(24.dp)
         )
     }
 
@@ -91,44 +100,63 @@ fun PenjualanListScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Riwayat Penjualan", fontWeight = FontWeight.Bold)
-                        Text("Pantau semua transaksi Anda", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                        Text(
+                            "Riwayat Penjualan",
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Black,
+                                color = slate900
+                            )
+                        )
+                        Text(
+                            "Log Transaksi Toko",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.Gray
+                        )
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
-                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Kembali", modifier = Modifier.size(20.dp))
+                        Icon(
+                            Icons.Default.ArrowBackIosNew,
+                            contentDescription = "Kembali",
+                            modifier = Modifier.size(20.dp),
+                            tint = slate900
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
             )
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = navigateToPenjualanEntry,
-                containerColor = MaterialTheme.colorScheme.primary,
+                containerColor = emerald600,
                 contentColor = Color.White,
+                shape = RoundedCornerShape(16.dp),
                 icon = { Icon(Icons.Default.PostAdd, null) },
-                text = { Text("Transaksi Baru") }
+                text = { Text("Transaksi Baru", fontWeight = FontWeight.Bold) }
             )
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues).background(Color(0xFFF8F9FA))) {
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues).background(softWhite)) {
             when (val state = viewModel.penjualanListUiState) {
                 is PenjualanListUiState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = emerald600)
                 }
                 is PenjualanListUiState.Success -> {
                     if (state.penjualanList.isEmpty()) {
-                        EmptyStatePenjualan()
+                        EmptyStatePenjualan(slate900)
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
+                            contentPadding = PaddingValues(20.dp),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             items(state.penjualanList) { penjualan ->
                                 PenjualanCard(
                                     penjualan = penjualan,
+                                    accentColor = emerald600,
+                                    slateColor = slate900,
                                     onClick = { navigateToPenjualanDetail(penjualan.penjualanId!!) },
                                     onDelete = {
                                         penjualanToDelete = penjualan
@@ -140,7 +168,7 @@ fun PenjualanListScreen(
                     }
                 }
                 is PenjualanListUiState.Error -> {
-                    Text(state.message, color = MaterialTheme.colorScheme.error, modifier = Modifier.align(Alignment.Center))
+                    Text(state.message, color = Color.Red, modifier = Modifier.align(Alignment.Center))
                 }
             }
         }
@@ -150,6 +178,8 @@ fun PenjualanListScreen(
 @Composable
 fun PenjualanCard(
     penjualan: PenjualanModel,
+    accentColor: Color,
+    slateColor: Color,
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -159,29 +189,29 @@ fun PenjualanCard(
         }
     }
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
+    Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        color = Color.White,
+        border = BorderStroke(1.dp, Color(0xFFE2E8F0))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Ikon Avatar Inisial Pembeli
+            // Inisial Pembeli dengan Style Bulat Slate
             Surface(
-                modifier = Modifier.size(50.dp),
+                modifier = Modifier.size(54.dp),
                 shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer
+                color = slateColor.copy(alpha = 0.05f)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
                         text = penjualan.namaPembeli.take(1).uppercase(),
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontSize = 20.sp
+                        fontWeight = FontWeight.Black,
+                        color = slateColor,
+                        fontSize = 22.sp
                     )
                 }
             }
@@ -191,57 +221,86 @@ fun PenjualanCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = penjualan.namaPembeli,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        color = slateColor,
+                        letterSpacing = (-0.5).sp
+                    ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = penjualan.namaProduk ?: "Produk Tidak Diketahui",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = Color.Gray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = formatRupiah.format(penjualan.totalHarga),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.primary
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = accentColor
+                        )
                     )
                     Text(
                         text = " • ${penjualan.jumlah} Unit",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.DarkGray
+                        color = Color.Gray
                     )
                 }
             }
 
             IconButton(
                 onClick = onDelete,
-                modifier = Modifier.background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f), CircleShape)
+                modifier = Modifier
+                    .background(Color(0xFFFFF1F2), CircleShape)
+                    .size(32.dp)
             ) {
-                Icon(Icons.Default.DeleteOutline, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
+                Icon(
+                    Icons.Default.DeleteOutline,
+                    null,
+                    tint = Color(0xFFE11D48),
+                    modifier = Modifier.size(16.dp)
+                )
             }
         }
     }
 }
 
 @Composable
-fun EmptyStatePenjualan() {
+fun EmptyStatePenjualan(textColor: Color) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(
-            Icons.Default.ReceiptLong,
-            contentDescription = null,
-            modifier = Modifier.size(100.dp),
-            tint = Color.LightGray.copy(alpha = 0.5f)
+        Surface(
+            modifier = Modifier.size(120.dp),
+            shape = CircleShape,
+            color = Color(0xFFF1F5F9)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    Icons.Default.ReceiptLong,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = Color.LightGray
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            "Belum Ada Transaksi",
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            color = textColor
         )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text("Belum ada transaksi", fontWeight = FontWeight.Bold, color = Color.Gray)
-        Text("Klik tombol + untuk mencatat penjualan", fontSize = 14.sp, color = Color.LightGray)
+        Text(
+            "Mulai catat penjualan sepeda pertama Anda",
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.Gray
+        )
     }
 }

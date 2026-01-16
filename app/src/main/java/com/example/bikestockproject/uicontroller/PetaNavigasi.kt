@@ -35,7 +35,7 @@ import com.example.bikestockproject.view.ProdukDetailScreen
 import com.example.bikestockproject.view.ProdukEditScreen
 import com.example.bikestockproject.view.ProdukEntryScreen
 import com.example.bikestockproject.view.ProdukListScreen
-import com.example.bikestockproject.view.ProdukStokScreen
+
 import com.example.bikestockproject.view.SplashScreen
 
 @Composable

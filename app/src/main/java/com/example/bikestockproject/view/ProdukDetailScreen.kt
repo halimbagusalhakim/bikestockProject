@@ -22,7 +22,6 @@ import com.example.bikestockproject.local.TokenManager
 import com.example.bikestockproject.viewmodel.ProdukDetailUiState
 import com.example.bikestockproject.viewmodel.ProdukDetailViewModel
 import com.example.bikestockproject.viewmodel.provider.PenyediaViewModel
-
 import java.text.NumberFormat
 import java.util.*
 
@@ -37,6 +36,11 @@ fun ProdukDetailScreen(
     val tokenManager = remember { TokenManager(context) }
     val token by tokenManager.token.collectAsState(initial = null)
 
+    // Warna Tema Konsisten
+    val slate900 = Color(0xFF0F172A) // Untuk Teks & Judul
+    val emerald600 = Color(0xFF059669) // Untuk Aksi Utama (Tombol)
+    val softWhite = Color(0xFFF8FAFC) // Untuk Background
+
     LaunchedEffect(token) {
         token?.let { if (it.isNotEmpty()) viewModel.getProdukDetail(it) }
     }
@@ -44,10 +48,23 @@ fun ProdukDetailScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Informasi Detail", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        "Detail Produk",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            color = slate900
+                        )
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
-                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Kembali", modifier = Modifier.size(20.dp))
+                        Icon(
+                            Icons.Default.ArrowBackIosNew,
+                            contentDescription = "Kembali",
+                            modifier = Modifier.size(20.dp),
+                            tint = slate900
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
@@ -57,7 +74,7 @@ fun ProdukDetailScreen(
         when (val state = viewModel.produkDetailUiState) {
             is ProdukDetailUiState.Loading -> {
                 Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = emerald600)
                 }
             }
             is ProdukDetailUiState.Success -> {
@@ -68,61 +85,71 @@ fun ProdukDetailScreen(
                     }
                 }
 
-                Box(modifier = Modifier.fillMaxSize().padding(paddingValues).background(Color(0xFFF8F9FA))) {
+                Box(modifier = Modifier.fillMaxSize().padding(paddingValues).background(softWhite)) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
                             .padding(24.dp)
                     ) {
-                        // Header Visual (Placeholder Gambar / Ikon Besar)
+                        // Header Visual
                         Surface(
-                            modifier = Modifier.fillMaxWidth().height(180.dp),
-                            shape = RoundedCornerShape(28.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                            modifier = Modifier.fillMaxWidth().height(200.dp),
+                            shape = RoundedCornerShape(32.dp),
+                            color = slate900.copy(alpha = 0.05f),
+                            border = BorderStroke(1.dp, Color(0xFFE2E8F0))
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     Icons.Default.DirectionsBike,
                                     contentDescription = null,
-                                    modifier = Modifier.size(80.dp),
-                                    tint = MaterialTheme.colorScheme.primary
+                                    modifier = Modifier.size(100.dp),
+                                    tint = slate900.copy(alpha = 0.8f)
                                 )
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(28.dp))
 
-                        // Nama Produk & Harga Utama
+                        // Nama Produk
                         Text(
                             text = produk.namaProduk,
-                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold)
-                        )
-                        Text(
-                            text = formatRupiah.format(produk.harga),
-                            style = MaterialTheme.typography.headlineSmall.copy(
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Black,
+                                color = slate900,
+                                letterSpacing = (-1).sp
                             )
                         )
 
-                        Spacer(modifier = Modifier.height(24.dp))
+                        // Harga (Menggunakan Slate agar tidak mengalihkan perhatian dari tombol aksi)
+                        Text(
+                            text = formatRupiah.format(produk.harga),
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                color = slate900,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(32.dp))
 
                         // Stats Grid (Stok & Merk)
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             InfoBadge(
                                 modifier = Modifier.weight(1f),
-                                label = "Stok Tersedia",
+                                label = "Stok Gudang",
                                 value = "${produk.stok} Unit",
                                 icon = Icons.Default.Inventory2,
-                                color = if (produk.stok > 10) Color(0xFF10B981) else Color(0xFFEF4444)
+                                // Hijau Emerald jika stok aman, Merah jika kritis
+                                color = if (produk.stok > 5) emerald600 else Color(0xFFE11D48),
+                                slateColor = slate900
                             )
                             InfoBadge(
                                 modifier = Modifier.weight(1f),
                                 label = "Merk Sepeda",
                                 value = produk.namaMerk ?: "-",
                                 icon = Icons.Default.BrandingWatermark,
-                                color = MaterialTheme.colorScheme.secondary
+                                color = slate900,
+                                slateColor = slate900
                             )
                         }
 
@@ -131,41 +158,48 @@ fun ProdukDetailScreen(
                         // Deskripsi Section
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(20.dp),
+                            shape = RoundedCornerShape(24.dp),
                             colors = CardDefaults.cardColors(containerColor = Color.White),
-                            border = BorderStroke(1.dp, Color(0xFFF1F3F5))
+                            border = BorderStroke(1.dp, Color(0xFFE2E8F0))
                         ) {
-                            Column(modifier = Modifier.padding(20.dp)) {
+                            Column(modifier = Modifier.padding(24.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Description, null, modifier = Modifier.size(18.dp), tint = Color.Gray)
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Deskripsi", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                                    Icon(Icons.Default.Notes, null, modifier = Modifier.size(20.dp), tint = slate900)
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Text(
+                                        "Deskripsi Produk",
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = slate900
+                                    )
                                 }
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Text(
-                                    text = produk.deskripsi ?: "Tidak ada deskripsi untuk produk ini.",
+                                    text = produk.deskripsi ?: "Informasi deskripsi belum ditambahkan.",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.DarkGray,
-                                    lineHeight = 22.sp
+                                    color = Color.Gray,
+                                    lineHeight = 24.sp
                                 )
                             }
                         }
 
                         Spacer(modifier = Modifier.height(40.dp))
 
-                        // Action Buttons
+                        // Action Button (KONSISTEN EMERALD)
                         Button(
                             onClick = { navigateToProdukEdit(produk.produkId!!) },
-                            modifier = Modifier.fillMaxWidth().height(58.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                            modifier = Modifier.fillMaxWidth().height(62.dp),
+                            shape = RoundedCornerShape(18.dp),
+                            // Diubah menjadi emerald600 agar konsisten dengan seluruh aplikasi
+                            colors = ButtonDefaults.buttonColors(containerColor = emerald600),
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
                         ) {
-                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text("Edit Informasi Produk", fontWeight = FontWeight.Bold)
+                            Icon(Icons.Default.EditNote, contentDescription = null, modifier = Modifier.size(22.dp))
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text("Edit Spesifikasi Produk", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         }
 
-                        Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
                     }
                 }
             }
@@ -184,19 +218,34 @@ fun InfoBadge(
     label: String,
     value: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    color: Color
+    color: Color,
+    slateColor: Color
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(24.dp),
         color = Color.White,
-        border = BorderStroke(1.dp, Color(0xFFF1F3F5))
+        border = BorderStroke(1.dp, Color(0xFFE2E8F0))
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Icon(icon, null, modifier = Modifier.size(20.dp), tint = color)
-            Spacer(modifier = Modifier.height(12.dp))
+        Column(modifier = Modifier.padding(20.dp)) {
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = color.copy(alpha = 0.1f),
+                modifier = Modifier.size(40.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(icon, null, modifier = Modifier.size(20.dp), tint = color)
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
             Text(label, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
-            Text(value, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+            Text(
+                value,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.ExtraBold,
+                    color = slateColor
+                )
+            )
         }
     }
 }
